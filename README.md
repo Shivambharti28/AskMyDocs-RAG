@@ -1,10 +1,10 @@
-# 📚 AskMyDocs - Production RAG System
+# 📚 AskMyDocs - Production RAG System 
 
 A **Retrieval-Augmented Generation (RAG)** application built using **LangChain**, **Google Gemini**, and **ChromaDB**. This project allows users to upload documents and ask natural language questions. Instead of relying only on the LLM's knowledge, the system retrieves relevant document chunks and generates accurate, context-aware answers.
 
 ---
 
-## 🚀 Features
+## 🚀 Features 
 
 * 📄 Load PDF and text documents
 * ✂️ Intelligent document chunking
