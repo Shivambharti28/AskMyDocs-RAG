@@ -2,7 +2,7 @@
 
 A **Retrieval-Augmented Generation (RAG)** application built using **LangChain**, **Google Gemini**, and **ChromaDB**. This project allows users to upload documents and ask natural language questions. Instead of relying only on the LLM's knowledge, the system retrieves relevant document chunks and generates accurate, context-aware answers.
 
----
+----
 
 ## 🚀 Features 
 
@@ -183,5 +183,5 @@ with a Large Language Model by retrieving relevant document chunks
 and using them as context before generating the final answer.
 ```
 
----
+----
 
