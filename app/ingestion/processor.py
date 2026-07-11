@@ -62,10 +62,6 @@ def processed_file(file_path: str, filename: str, source_type: str):
             else:
                 logfire.warning(f"Skipping unsupported file type: {filename}")
                 return
-            
-            # if not full_text or not full_text.strip():
-            #     logfire.warning(f"No text extracted from {filename} - skipping.")
-            #     return
 
             if not full_text:
                 logfire.warning(f"No content extracted from {filename} - skipping.")
@@ -77,11 +73,6 @@ def processed_file(file_path: str, filename: str, source_type: str):
                 return
             
             # 3. Save processed metadata locally
-            # processed_data = {
-            #     "filename": filename,
-            #     "source_type": source_type,
-            #     "chunks": chunks
-            # }
             document_id = str(uuid.uuid4())
 
             processed_data = {
@@ -108,14 +99,7 @@ def processed_file(file_path: str, filename: str, source_type: str):
                         models.PointStruct(
                             id=str(uuid.uuid4()),
                             vector=vector,
-                            # payload={
-                            #     "document_id": document_id,
-                            #     "chunk_id": chunk_id,
-                            #     "text": chunk,
-                            #     "source": filename,
-                            #     "source_type": source_type,
-                            #     "chunk_length": len(chunk),
-                            # },
+                         
                             payload={
                                 "document_id": document_id,
                                 "chunk_id": chunk["chunk_id"],
@@ -148,38 +132,7 @@ def processed_file(file_path: str, filename: str, source_type: str):
                     document_id=document_id,
                     chunks=len(points),
                 )
-        #     with logfire.span("Vectorizing & Indexing"):
-        #         embeddings = embed_texts(chunks)
-        #         points = [
-        #             models.PointStruct(
-        #                 id = str(uuid.uuid4()),
-        #                 vector = vector,
-        #                 payload={
-        #                     "text": chunk,
-        #                     "source": filename,
-        #                     "source_type": source_type,
-                            
-        #                 },
-        #             )
-        #             for chunk, vector in zip(chunks, embeddings)
-        #         ]
-        #         UPSERT_BATCH_SIZE = 50
 
-        #         for i in range(0, len(points), UPSERT_BATCH_SIZE):
-        #             batch = points[i:i + UPSERT_BATCH_SIZE]
-
-        #             qdrant_client.upsert(
-        #             collection_name=settings.QDRANT_COLLECTION,
-        #             points=batch,
-        #             wait=True,
-        #             )
-
-        #             logfire.info(
-        #             "Uploaded batch",
-        #             batch=i // UPSERT_BATCH_SIZE + 1,
-        #             size=len(batch),
-        #             )
-        #         logfire.info(f"Indexed {len(points)} points to Qdrant from {filename}.")
         except Exception as e:
             logfire.error(f"Failed to process {filename}: {e}")
             traceback.print_exc()

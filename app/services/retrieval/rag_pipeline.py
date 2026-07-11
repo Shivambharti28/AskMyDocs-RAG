@@ -4,12 +4,9 @@ import traceback
 from app.services.retrieval.qdrant_service import search
 from app.services.retrieval.prompt_builder import build_prompt
 from app.services.retrieval.llm_service import generate_answer
-from app.services.retrieval.post_processing import (
-    deduplicate_chunks,
-    merge_adjacent_chunks,
-)
+from app.services.retrieval.post_processing import (deduplicate_chunks, merge_adjacent_chunks,)
 
-# 
+
 def ask(
     question: str,
     source: str | None = None,

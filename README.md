@@ -12,7 +12,7 @@ The system performs semantic retrieval using vector embeddings, retrieves the mo
 - 🧩 Hybrid document chunking
 - 🔍 Semantic vector search
 - 📚 Citation-backed answers
-- 🤖 Gemini LLM integration
+- 🤖 Gemini/Groq LLM integration
 - ⚡ FastAPI backend
 - 🎨 Streamlit frontend
 - ☁️ Qdrant Cloud vector database

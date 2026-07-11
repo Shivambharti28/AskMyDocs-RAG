@@ -54,18 +54,6 @@ def generate_answer(prompt: str) -> str:
 
             return answer
 
-        # except Exception as e:
-        #     traceback.print_exc()
-
-        #     logfire.error(
-        #         "LLM generation failed",
-        #         error=str(e),
-        #     )
-
-        #     return (
-        #         "Sorry, I couldn't generate an answer at the moment. "
-        #         "Please try again."
-        #     )
         except Exception as e:
             # traceback.print_exc()
 

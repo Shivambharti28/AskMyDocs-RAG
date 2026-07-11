@@ -33,12 +33,6 @@ def search_by_vector(
     limit=limit,
     with_payload=True,
     )
-    # response = client.query_points(
-    #     collection_name=settings.QDRANT_COLLECTION,
-    #     query=query_vector,
-    #     limit=limit,
-    #     with_payload=True,
-    # )
 
     results = []
 
@@ -73,11 +67,7 @@ def search(
     page: int | None = None,
 ):
     query_vector = embed_query(query)
-    # conditions = []
-
-    # return search_by_vector(
-    #     query_vector=query_vector,
-    #     limit=limit,
+    
     conditions = []
 
     # Filter by source document
