@@ -6,7 +6,14 @@ logfire.configure(service_name="enterprise-rag")
 
 question = input("Question: ")
 
-result = ask(question)
+source = input("Source (leave blank for all documents): ").strip()
+page = input("Page (leave blank for all pages): ").strip()
+
+result = ask(
+    question=question,
+    source=source if source else None,
+    page=int(page) if page else None,
+)
 
 print("\n")
 print("=" * 80)
@@ -19,12 +26,8 @@ print("=" * 80)
 print("SOURCES")
 print("=" * 80)
 
-for i, source in enumerate(result["sources"], start=1):
-
+for i, src in enumerate(result["sources"], start=1):
     print(f"\n{i}.")
-
-    print("Document :", source.get("source"))
-
-    print("Page     :", source.get("page"))
-
-    print("Score    :", round(source.get("score", 0), 4))
+    print("Document :", src.get("source"))
+    print("Page     :", src.get("page"))
+    print("Score    :", round(src.get("score", 0), 4))

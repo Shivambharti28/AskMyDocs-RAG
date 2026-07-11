@@ -1,11 +1,20 @@
 import logfire
+import traceback
 
 from app.services.retrieval.qdrant_service import search
 from app.services.retrieval.prompt_builder import build_prompt
 from app.services.retrieval.llm_service import generate_answer
-from app.services.retrieval.post_processing import deduplicate_chunks
+from app.services.retrieval.post_processing import (
+    deduplicate_chunks,
+    merge_adjacent_chunks,
+)
 
-def ask(question: str) -> dict:
+# 
+def ask(
+    question: str,
+    source: str | None = None,
+    page: int | None = None,
+):
     """
     Complete Enterprise RAG pipeline.
 
@@ -39,19 +48,12 @@ def ask(question: str) -> dict:
                 question=question,
             )
 
-            # retrieved_chunks = search(question)
+
             retrieved_chunks = search(
                 query=question,
                 limit=5,
-            )
-
-            retrieved_chunks = deduplicate_chunks(
-                retrieved_chunks
-            )
-
-            logfire.info(
-                "Retrieval completed",
-                retrieved_chunks=len(retrieved_chunks),
+                source=source,
+                page=page,
             )
 
             if not retrieved_chunks:
@@ -66,6 +68,19 @@ def ask(question: str) -> dict:
                     ),
                     "sources": [],
                 }
+
+            retrieved_chunks = deduplicate_chunks(
+                retrieved_chunks
+            )
+
+            retrieved_chunks = merge_adjacent_chunks(
+                retrieved_chunks
+            )
+
+            logfire.info(
+                "Retrieval completed",
+                retrieved_chunks=len(retrieved_chunks),
+            )
 
             logfire.info("Building prompt")
 
@@ -87,9 +102,11 @@ def ask(question: str) -> dict:
                 "answer": answer,
                 "sources": retrieved_chunks,
             }
+        
 
         except Exception as e:
-
+            
+            traceback.print_exc()
             logfire.error(
                 "RAG Pipeline Failed",
                 error=str(e),
@@ -102,3 +119,4 @@ def ask(question: str) -> dict:
                 ),
                 "sources": [],
             }
+        
