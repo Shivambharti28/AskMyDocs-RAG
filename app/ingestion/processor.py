@@ -88,7 +88,7 @@ def processed_file(file_path: str, filename: str, source_type: str):
 
             # 4. Embedding and Indexing
             with logfire.span("Vectorizing & Indexing"):
-                document_id = str(uuid.uuid4())
+                # document_id = str(uuid.uuid4())
                 texts = [chunk["text"] for chunk in chunks]
                 embeddings = embed_texts(texts)
                 # embeddings = embed_texts(chunks)
@@ -154,6 +154,12 @@ def run_universal_ingestion(base_dir: str, explicit_source_type: str = None, wip
     Scan base_dir. map sub-folders to source types, and ingest all documents.
     Pass --wipe to drop and recreate the Qdrant collection before ingestion.
     """
+    if wipe and qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
+        logfire.info("Deleting existing collection...")
+        qdrant_client.delete_collection(
+            settings.QDRANT_COLLECTION
+        )
+        logfire.info("Collection deleted.")
     with logfire.span("Universal Ingestion Started", base_directory = base_dir):
         # Recreate collection - dimension resolved at runtime after embedding model probe
         if not qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
@@ -215,4 +221,6 @@ if __name__ == "__main__":
 
     run_universal_ingestion(target_dir, explicit_source_type=explicit_type, wipe=wipe_requested)
     logfire.info("Ingestion job completed.")
+
+
 

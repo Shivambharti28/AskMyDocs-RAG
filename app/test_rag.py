@@ -30,4 +30,7 @@ for i, src in enumerate(result["sources"], start=1):
     print(f"\n{i}.")
     print("Document :", src.get("source"))
     print("Page     :", src.get("page"))
-    print("Score    :", round(src.get("score", 0), 4))
+    print("Original Score :", round(src.get("score", 0), 4))
+
+    if "rrf_score" in src:
+        print("RRF Score      :", round(src["rrf_score"], 5)) 

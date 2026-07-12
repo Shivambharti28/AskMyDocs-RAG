@@ -1,10 +1,11 @@
 import logfire
 import traceback
 
-from app.services.retrieval.qdrant_service import search
+# from app.services.retrieval.qdrant_service import search
 from app.services.retrieval.prompt_builder import build_prompt
 from app.services.retrieval.llm_service import generate_answer
 from app.services.retrieval.post_processing import (deduplicate_chunks, merge_adjacent_chunks,)
+from app.services.retrieval.hybrid_search import hybrid_search
 
 
 def ask(
@@ -46,7 +47,7 @@ def ask(
             )
 
 
-            retrieved_chunks = search(
+            retrieved_chunks = hybrid_search(
                 query=question,
                 limit=5,
                 source=source,

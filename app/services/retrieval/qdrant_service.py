@@ -55,6 +55,15 @@ def search_by_vector(
     logfire.info(
         f"Retrieved {len(results)} chunks above threshold ({MIN_SCORE})"
     )
+    print("\n===== RAW QDRANT RESULTS =====")
+
+    for r in results:
+        print(
+            f"Page={r['page']} | "
+            f"Chunk={r['chunk_id']} | "
+            f"Doc={r['document_id']} | "
+            f"Score={r['score']:.4f}"
+        )
 
     return results
 
