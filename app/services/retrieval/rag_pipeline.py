@@ -6,6 +6,7 @@ from app.services.retrieval.prompt_builder import build_prompt
 from app.services.retrieval.llm_service import generate_answer
 from app.services.retrieval.post_processing import (deduplicate_chunks, merge_adjacent_chunks,)
 from app.services.retrieval.hybrid_search import hybrid_search
+from app.services.retrieval.reranker import rerank_chunks
 
 
 def ask(
@@ -73,6 +74,11 @@ def ask(
 
             retrieved_chunks = merge_adjacent_chunks(
                 retrieved_chunks
+            )
+            retrieved_chunks = rerank_chunks(
+                question=question,
+                chunks=retrieved_chunks,
+                top_k=5,
             )
 
             logfire.info(

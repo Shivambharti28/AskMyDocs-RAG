@@ -34,3 +34,9 @@ for i, src in enumerate(result["sources"], start=1):
 
     if "rrf_score" in src:
         print("RRF Score      :", round(src["rrf_score"], 5)) 
+    
+    print(
+        "Rerank Score :",
+        round(src.get("rerank_score", 0), 4)
+    )
+
