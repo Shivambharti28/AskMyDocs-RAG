@@ -14,6 +14,7 @@ from app.services.retrieval.embeddings import embed_query
 client = QdrantClient(
     url=settings.QDRANT_URL,
     api_key=settings.QDRANT_API_KEY,
+    timeout = 60,
 )
 
 # Minimum similarity score required
