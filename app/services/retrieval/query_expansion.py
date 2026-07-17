@@ -27,13 +27,6 @@ Question:
 
     response = llm.invoke(prompt)
 
-    
-
-    # queries = [
-    #     line.strip("- ").strip()
-    #     for line in response.content.split("\n")
-    #     if line.strip()
-    # ]
     queries = [
     line.strip("- ").strip()
     for line in response.content.split("\n")
@@ -45,25 +38,14 @@ Question:
     unique_queries = []
 
     for q in queries:
-        # normalized = q.lower().strip()
         normalized = re.sub(r"[^\w\s]", "", q.lower()).strip()
         if normalized not in seen:
             seen.add(normalized)
             unique_queries.append(q)
 
-    # Ensure the original user query is included
-    # if question.lower().strip() not in seen:
-    #     unique_queries.insert(0, question)
-    # Ensure the original user query is included
-    normalized_question = re.sub(
-        r"[^\w\s]",
-        "",
-        question.lower(),
-    ).strip()
+    normalized_question = re.sub(r"[^\w\s]","",question.lower(),).strip()
 
     if normalized_question not in seen:
         unique_queries.insert(0, question)
 
     return unique_queries
-
-    # return queries

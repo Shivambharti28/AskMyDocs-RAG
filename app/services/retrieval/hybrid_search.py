@@ -12,9 +12,10 @@ def hybrid_search(
     page: int | None = None,
 ):
 
-    expanded_queries = expand_query(query) 
-    multi_queries = generate_multi_queries(query) 
-    queries = expanded_queries + multi_queries
+    # expanded_queries = expand_query(query) 
+    # multi_queries = generate_multi_queries(query) 
+    # queries = expanded_queries + multi_queries
+    queries = [query]
 
 
     # Remove duplicates while preserving order
