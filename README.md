@@ -1,6 +1,6 @@
 # 📚 AskMyDocs – Production RAG System
 
-A production-ready Retrieval-Augmented Generation (RAG) system that allows users to ask natural language questions over their own documents and receive accurate, citation-backed answers powered by Large Language Models.
+A production-ready Retrieval-Augmented Generation (RAG) system that allows users to ask natural language questions over their own documents and receive accurate, citation-backed answers powered by Large Language Models(LLMs).
 
 The system performs semantic retrieval using vector embeddings, retrieves the most relevant document chunks from Qdrant, builds a grounded prompt, and generates responses using Google's Gemini models.
 
