@@ -3,7 +3,8 @@ import logfire
 MAX_CONTEXT_CHARS = 10000
 
 
-def build_prompt(question: str, retrieved_chunks: list[dict]) -> str:
+# def build_prompt(question: str, retrieved_chunks: list[dict]) -> str:
+def build_prompt(question: str,retrieved_chunks: list[dict],conversation_history: list[dict] | None = None,) -> str:
     """
     Build a grounded prompt for the LLM using retrieved chunks.
 
@@ -19,8 +20,6 @@ def build_prompt(question: str, retrieved_chunks: list[dict]) -> str:
         "📝 Building Prompt",
         retrieved_chunks=len(retrieved_chunks),
     ):
-
-  
         # Remove duplicate chunks
 
         seen = set()
@@ -55,7 +54,38 @@ Rules:
 """
 
 
+        
+
+
+        # Build Conversation History
+
+        history = ""
+
+        if conversation_history:
+
+            history += (
+                "==================================================\n"
+                    "CONVERSATION HISTORY\n"
+                "==================================================\n\n"
+            )
+
+            for message in conversation_history:
+
+                role = message["role"].upper()
+                content = message["content"]
+
+                history += f"{role}: {content}\n\n"
+
+        else:
+
+            history = (
+                "==================================================\n"
+                "CONVERSATION HISTORY\n"
+                "==================================================\n\n"
+                "No previous conversation.\n\n"
+            )
         # Build Context
+
 
         context = ""
 
@@ -107,14 +137,16 @@ Content:
         prompt = f"""
 {instruction}
 
+{history}
+
 ==================================================
-CONTEXT
+RETRIEVED CONTEXT
 ==================================================
 
 {context}
 
 ==================================================
-QUESTION
+CURRENT QUESTION
 ==================================================
 
 {question}
@@ -123,6 +155,26 @@ QUESTION
 ANSWER
 ==================================================
 """
+
+#         prompt = f"""
+# {instruction}
+
+# ==================================================
+# CONTEXT
+# ==================================================
+
+# {context}
+
+# ==================================================
+# QUESTION
+# ==================================================
+
+# {question}
+
+# ==================================================
+# ANSWER
+# ==================================================
+# """
 
         logfire.info(
             "Prompt built successfully.",

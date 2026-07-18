@@ -6,6 +6,9 @@ from app.services.retrieval.post_processing import (deduplicate_chunks,merge_adj
 from app.services.retrieval.hybrid_search import hybrid_search
 from app.services.retrieval.reranker import rerank_chunks
 from app.services.retrieval.context_compression import compress_chunks
+from app.services.conversation.memory import ConversationMemory
+
+conversation_memory = ConversationMemory()
 
 
 def ask(
@@ -64,11 +67,17 @@ def ask(
             prompt = build_prompt(
                 question=question,
                 retrieved_chunks=retrieved_chunks,
+                conversation_history=conversation_memory.get_history(),
             )
             logfire.info("Generating answer")
-            answer = generate_answer(
-                prompt
-            )
+            answer = generate_answer(prompt)
+            conversation_memory.add_user_message(question)
+            conversation_memory.add_assistant_message(answer)
+            print("\n===== Conversation History =====")
+            for message in conversation_memory.get_history():
+                print(f"{message['role'].upper()}: "
+                      f"{message['content']}"
+                )
             logfire.info("Pipeline completed successfully",answer_length=len(answer))
             return {
                 "answer": answer,
