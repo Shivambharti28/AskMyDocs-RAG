@@ -1,12 +1,7 @@
 import logfire
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    Filter,
-    FieldCondition,
-    MatchValue,
-)
-
+from qdrant_client.models import (Filter,FieldCondition,MatchValue,)
 from app.config import settings
 from app.services.retrieval.embeddings import embed_query
 
@@ -22,11 +17,7 @@ MIN_SCORE = 0.70
 
 
 # def search_by_vector(query_vector: list[float], limit: int = 5):
-def search_by_vector(
-    query_vector: list[float],
-    limit: int = 5,
-    query_filter: Filter | None = None,
-):
+def search_by_vector(query_vector: list[float],limit: int = 5,query_filter: Filter | None = None,):
     response = client.query_points(
     collection_name=settings.QDRANT_COLLECTION,
     query=query_vector,
@@ -70,12 +61,7 @@ def search_by_vector(
 
 
 # def search(query: str, limit: int = 5):
-def search(
-    query: str,
-    limit: int = 5,
-    source: str | None = None,
-    page: int | None = None,
-):
+def search(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
     query_vector = embed_query(query)
     
     conditions = []
@@ -113,11 +99,7 @@ def search(
     
 
 
-def search_with_filter(
-    query: str,
-    filter_condition,
-    limit: int = 5,
-):
+def search_with_filter(query: str,filter_condition,limit: int = 5,):
     query_vector = embed_query(query)
 
     response = client.query_points(

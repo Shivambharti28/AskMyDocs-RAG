@@ -6,14 +6,7 @@ reranker = CrossEncoder(
     "cross-encoder/ms-marco-MiniLM-L-6-v2"
 )
 
-def rerank_chunks(
-    question: str,
-    chunks: list[dict],
-    top_k: int = 5,
-):
-    """
-    Rerank retrieved chunks using a Cross Encoder.
-    """
+def rerank_chunks(question: str,chunks: list[dict],top_k: int = 5,):
 
     if not chunks:
         return []

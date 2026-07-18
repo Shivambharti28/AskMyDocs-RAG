@@ -11,11 +11,7 @@ from app.services.conversation.memory import ConversationMemory
 conversation_memory = ConversationMemory()
 
 
-def ask(
-    question: str,
-    source: str | None = None,
-    page: int | None = None,
-):
+def ask(question: str,source: str | None = None,page: int | None = None,):
 
     with logfire.span("🚀 Enterprise RAG Pipeline",question=question):
         try:

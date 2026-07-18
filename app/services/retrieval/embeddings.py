@@ -12,10 +12,6 @@ _active_model = None
 _model_type: str | None = None
 
 def _probe_gemini():
-    """
-    Try one embed call to verify Gemini is reachable.
-    Returns model or None.
-    """
     try:
         model = GoogleGenerativeAIEmbeddings(
             model = "models/gemini-embedding-2-preview",

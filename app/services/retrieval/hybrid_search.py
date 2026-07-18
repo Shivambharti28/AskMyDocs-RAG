@@ -5,12 +5,7 @@ from app.services.retrieval.query_expansion import expand_query
 from app.services.retrieval.multi_query import generate_multi_queries
 
 
-def hybrid_search(
-    query: str,
-    limit: int = 5,
-    source: str | None = None,
-    page: int | None = None,
-):
+def hybrid_search(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
 
     expanded_queries = expand_query(query) 
     multi_queries = generate_multi_queries(query) 

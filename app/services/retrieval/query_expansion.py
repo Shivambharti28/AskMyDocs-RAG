@@ -1,20 +1,18 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from app.config import settings
+# llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash",
+#     google_api_key=settings.GEMINI_API_KEY,
+#     temperature=0,
+# )
+
 import re
+from app.services.llm.router import get_llm
 
-from app.config import settings
-
-
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=settings.GEMINI_API_KEY,
-    temperature=0,
-)
+llm = get_llm("cheap")
 
 
 def expand_query(question: str):
-    """
-    Generate multiple search queries for one question.
-    """
 
     prompt = f"""
 Generate 4 different search queries for the question below.

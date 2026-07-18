@@ -27,18 +27,12 @@ def split_into_sections(text: str) -> List[str]:
         sections = re.split(r"\n\s*\n", text)
         sections = [s.strip() for s in sections if s.strip()]
 
-        logfire.info(
-            "Structure split complete",
-            total_sections=len(sections)
-        )
+        logfire.info("Structure split complete",total_sections=len(sections))
         return sections
 
 
 def semantic_group(sentences: List[str], max_chars: int = 1500) -> List[str]:
-    with logfire.span(
-        "🧠 Semantic Grouping",
-        total_sentences=len(sentences)
-    ):
+    with logfire.span("🧠 Semantic Grouping",total_sentences=len(sentences)):
         chunks = []
         current = ""
         for sentence in sentences:
@@ -50,19 +44,13 @@ def semantic_group(sentences: List[str], max_chars: int = 1500) -> List[str]:
         if current.strip():
             chunks.append(current.strip())
 
-        logfire.info(
-            "Semantic grouping complete",
-            semantic_chunks=len(chunks)
-        )
+        logfire.info("Semantic grouping complete",semantic_chunks=len(chunks))
         return chunks
 
 
 # def chunk_text(text: str) -> List[str]:
 def chunk_text(documents: List[dict]) -> List[dict]:
-    with logfire.span(
-        "✂️ Hybrid Chunking",
-        documents=len(documents)
-    ):
+    with logfire.span("✂️ Hybrid Chunking",documents=len(documents)):
         if not documents:
             logfire.warning("Received empty document list")
             return []
@@ -84,10 +72,7 @@ def chunk_text(documents: List[dict]) -> List[dict]:
                     length=len(section_text)
                 ):
                     sentences = sent_tokenize(section_text)
-                    logfire.info(
-                        "Sentence tokenization",
-                        sentences=len(sentences)
-                    )
+                    logfire.info("Sentence tokenization",sentences=len(sentences))
                     semantic_chunks = semantic_group(sentences)
                     for chunk_number, chunk_text in enumerate(semantic_chunks, start=1):
                         with logfire.span(
@@ -106,10 +91,7 @@ def chunk_text(documents: List[dict]) -> List[dict]:
                                     }
                                 )
                                 chunk_counter += 1
-                                logfire.info(
-                                    "Chunk accepted",
-                                    size=len(chunk_text)
-                                )
+                                logfire.info("Chunk accepted",size=len(chunk_text))
                             else:
                                 recursive_chunks = recursive_splitter.split_text(chunk_text)
                                 # final_chunks.extend(recursive_chunks)
@@ -123,11 +105,7 @@ def chunk_text(documents: List[dict]) -> List[dict]:
                                         }
                                     )
                                     chunk_counter += 1
-                                logfire.info(
-                                    "Recursive split applied",
-                                    original_size=len(chunk_text),
-                                    generated=len(recursive_chunks)
-                                )
+                                logfire.info("Recursive split applied",original_size=len(chunk_text),generated=len(recursive_chunks))
         final_chunks = [
             chunk
             for chunk in final_chunks

@@ -126,12 +126,7 @@ def processed_file(file_path: str, filename: str, source_type: str):
                             wait=True,
                         )
 
-                logfire.info(
-                    "Indexing complete",
-                    filename=filename,
-                    document_id=document_id,
-                    chunks=len(points),
-                )
+                logfire.info("Indexing complete",filename=filename,document_id=document_id,chunks=len(points),)
 
         except Exception as e:
             logfire.error(f"Failed to process {filename}: {e}")
@@ -150,10 +145,6 @@ def process_directory(dir_path: str, source_type: str):
 
 
 def run_universal_ingestion(base_dir: str, explicit_source_type: str = None, wipe: bool = False):
-    """
-    Scan base_dir. map sub-folders to source types, and ingest all documents.
-    Pass --wipe to drop and recreate the Qdrant collection before ingestion.
-    """
     if wipe and qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
         logfire.info("Deleting existing collection...")
         qdrant_client.delete_collection(

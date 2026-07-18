@@ -1,21 +1,8 @@
 import logfire
 
+def deduplicate_chunks(chunks: list[dict],) -> list[dict]:
 
-def deduplicate_chunks(
-    chunks: list[dict],
-) -> list[dict]:
-    """
-    Remove duplicate retrieved chunks.
-
-    Duplicate means same document + same chunk_id.
-
-    Keeps the highest scored occurrence.
-
-    """
-
-    with logfire.span(
-        "Post Processing - Deduplicate Chunks"
-    ):
+    with logfire.span("Post Processing - Deduplicate Chunks"):
         
         seen = set()
         unique_chunks = []
@@ -33,21 +20,11 @@ def deduplicate_chunks(
             seen.add(key)
             unique_chunks.append(chunk)
 
-        logfire.info(
-            "Deduplication completed",
-            before=len(chunks),
-            after=len(unique_chunks),
-        )
+        logfire.info("Deduplication completed",before=len(chunks),after=len(unique_chunks),)
 
         return unique_chunks
 
 def merge_adjacent_chunks(chunks: list[dict]) -> list[dict]:
-    """
-    Merge chunks that:
-    - belong to the same document
-    - are on the same page
-    - have consecutive chunk IDs
-    """
 
     with logfire.span("Post Processing - Merge Adjacent Chunks"):
 
@@ -72,22 +49,13 @@ def merge_adjacent_chunks(chunks: list[dict]) -> list[dict]:
         current["end_chunk_id"] = current["chunk_id"]
 
         for chunk in chunks[1:]:
-            same_document = (
-                chunk["document_id"] == current["document_id"]
-            )
-            same_page = (
-                chunk["page"] == current["page"]
-            )
-            adjacent = (
-                chunk["chunk_id"] == current["chunk_id"] + 1
-            )
+            same_document = (chunk["document_id"] == current["document_id"])
+            same_page = (chunk["page"] == current["page"])
+            adjacent = (chunk["chunk_id"] == current["chunk_id"] + 1)
 
             if same_document and same_page and adjacent:
                 current["text"] += "\n\n" + chunk["text"]
-                current["score"] = max(
-                    current["score"],
-                    chunk["score"],
-                )
+                current["score"] = max(current["score"],chunk["score"],)
                 current["end_chunk_id"] = chunk["chunk_id"]
 
             else:
@@ -97,9 +65,5 @@ def merge_adjacent_chunks(chunks: list[dict]) -> list[dict]:
 
         merged.append(current)
 
-        logfire.info(
-            "Merge completed",
-            before=len(chunks),
-            after=len(merged),
-        )
+        logfire.info("Merge completed",before=len(chunks),after=len(merged),)
         return merged

@@ -1,17 +1,14 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0,
-)
+# llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash",
+#     temperature=0,
+# )
+from app.services.llm.router import get_llm
 
+llm = get_llm("best")
 
 def compress_chunks(question: str, chunks: list):
-    """
-    Compress retrieved chunks using a single Gemini call.
-
-    If compression fails, the original chunks are returned.
-    """
 
     if not chunks:
         return []

@@ -10,34 +10,20 @@ documents = []
 
 
 def build_bm25_index():
-
     global bm25, documents
-
     documents = []
-
     corpus = []
-
     for root, _, files in os.walk(PROCESSED_DATA_DIR):
-
         for file in files:
-
             if not file.endswith(".json"):
                 continue
-
             path = os.path.join(root, file)
-
             with open(path, "r", encoding="utf-8") as f:
-
                 data = json.load(f)
-
             for chunk in data["chunks"]:
-
                 chunk["source"] = data["filename"]
-
                 chunk["document_id"] = data["document_id"]
-
                 documents.append(chunk)
-
                 corpus.append(
                     chunk["text"].split()
                 )
@@ -46,12 +32,7 @@ def build_bm25_index():
 
     print(f"BM25 built with {len(documents)} chunks.")
 
-def search_bm25(
-    query: str,
-    limit: int = 5,
-    source: str | None = None,
-    page: int | None = None,
-):
+def search_bm25(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
 
     global bm25
 

@@ -5,23 +5,9 @@ MAX_CONTEXT_CHARS = 10000
 
 # def build_prompt(question: str, retrieved_chunks: list[dict]) -> str:
 def build_prompt(question: str,retrieved_chunks: list[dict],conversation_history: list[dict] | None = None,) -> str:
-    """
-    Build a grounded prompt for the LLM using retrieved chunks.
 
-    Args:
-        question: User's question.
-        retrieved_chunks: List of retrieved chunks from Qdrant.
-
-    Returns:
-        A formatted prompt ready to send to the LLM.
-    """
-
-    with logfire.span(
-        "📝 Building Prompt",
-        retrieved_chunks=len(retrieved_chunks),
-    ):
+    with logfire.span("📝 Building Prompt",retrieved_chunks=len(retrieved_chunks),):
         # Remove duplicate chunks
-
         seen = set()
         unique_chunks = []
 
@@ -52,32 +38,21 @@ Rules:
 6. When possible, cite the document name and page number naturally.
 7. Keep the answer clear, concise, and well-structured.
 """
-
-
-        
-
-
         # Build Conversation History
 
         history = ""
 
         if conversation_history:
-
             history += (
                 "==================================================\n"
                     "CONVERSATION HISTORY\n"
                 "==================================================\n\n"
             )
-
             for message in conversation_history:
-
                 role = message["role"].upper()
                 content = message["content"]
-
                 history += f"{role}: {content}\n\n"
-
         else:
-
             history = (
                 "==================================================\n"
                 "CONVERSATION HISTORY\n"
@@ -85,10 +60,7 @@ Rules:
                 "No previous conversation.\n\n"
             )
         # Build Context
-
-
         context = ""
-
         for i, chunk in enumerate(unique_chunks, start=1):
 
             source = chunk.get("source", "Unknown")
@@ -123,15 +95,10 @@ Content:
 
             # Prevent prompt from exceeding context budget
             if len(context) + len(next_chunk) > MAX_CONTEXT_CHARS:
-                logfire.warning(
-                    "Maximum context size reached.",
-                    max_context_chars=MAX_CONTEXT_CHARS,
-                )
+                logfire.warning("Maximum context size reached.",max_context_chars=MAX_CONTEXT_CHARS,)
                 break
 
             context += next_chunk
-
-
         # Final Prompt
 
         prompt = f"""
@@ -156,31 +123,7 @@ ANSWER
 ==================================================
 """
 
-#         prompt = f"""
-# {instruction}
 
-# ==================================================
-# CONTEXT
-# ==================================================
-
-# {context}
-
-# ==================================================
-# QUESTION
-# ==================================================
-
-# {question}
-
-# ==================================================
-# ANSWER
-# ==================================================
-# """
-
-        logfire.info(
-            "Prompt built successfully.",
-            unique_chunks=len(unique_chunks),
-            context_length=len(context),
-            prompt_length=len(prompt),
-        )
+        logfire.info("Prompt built successfully.",unique_chunks=len(unique_chunks),context_length=len(context),prompt_length=len(prompt),)
 
         return prompt
