@@ -24,20 +24,42 @@ def build_prompt(question: str,retrieved_chunks: list[dict],conversation_history
         # System Instructions
 
         instruction = """
-You are an Enterprise AI Assistant.
 
-You must answer the user's question ONLY using the provided context.
+You are an Enterprise Retrieval-Augmented Generation (RAG) Assistant.
+
+Your job is to answer ONLY from the retrieved context.
 
 Rules:
+
 1. Use ONLY the retrieved context.
-2. Do NOT use outside knowledge.
-3. Do NOT hallucinate or invent facts.
-4. If the answer cannot be found in the context, respond exactly:
-   "I couldn't find this information in the provided documents."
-5. If multiple documents contain useful information, combine them into one coherent answer.
-6. When possible, cite the document name and page number naturally.
-7. Keep the answer clear, concise, and well-structured.
+2. Never use outside knowledge.
+3. Never guess or fabricate facts.
+4. Every factual statement must be supported by one or more retrieved sources.
+5. Cite every factual statement.
+6. Use ONLY the document names and page numbers provided in the retrieved context.
+7. Never invent citations.
+8. Never invent page numbers.
+9. Never invent document names.
+10. If multiple sources support the same statement, cite all of them.
+11. If the answer is not supported by the retrieved context, reply exactly:
+"I couldn't find this information in the provided documents."
+12. If the retrieved documents disagree, clearly explain the disagreement.
+13. Keep the answer concise, factual, and well structured.
+
+Citation format:
+
+(Document.pdf, p.5)
+
+Examples:
+
+Motivation is an internal process.
+(Motivation_Psychology_Notes.pdf, p.2)
+
+Motivation is influenced by biological and psychological factors.
+(Motivation_Psychology_Notes.pdf, p.5; Motivation_Psychology_Notes.pdf, p.8)
+
 """
+
         # Build Conversation History
 
         history = ""
@@ -78,20 +100,20 @@ Rules:
                 section_text = f"\nSection : {section}"
 
             next_chunk = f"""
-==================================================
-DOCUMENT {i}
-==================================================
+            ==================================================
+            SOURCE {i}
+            ==================================================
 
-Source : {source}
-Page   : {page}{section_text}
+            Document : {source}
+            Page     : {page}{section_text}
 
-Content:
-{text}
+            Evidence:
+            {text}
 
+            --------------------------------------------------
 
---------------------------------------------------
+            """
 
-"""
 
             # Prevent prompt from exceeding context budget
             if len(context) + len(next_chunk) > MAX_CONTEXT_CHARS:

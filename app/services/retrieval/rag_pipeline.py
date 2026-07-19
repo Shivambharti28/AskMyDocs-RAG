@@ -7,6 +7,7 @@ from app.services.retrieval.hybrid_search import hybrid_search
 from app.services.retrieval.reranker import rerank_chunks
 from app.services.retrieval.context_compression import compress_chunks
 from app.services.conversation.memory import ConversationMemory
+from app.services.retrieval.confidence import calculate_confidence
 
 conversation_memory = ConversationMemory()
 
@@ -21,12 +22,6 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                 question=question,
             )
 
-            # retrieved_chunks = hybrid_search(
-            #     query=question,
-            #     limit=5,
-            #     source=source,
-            #     page=page,
-            # )
             retrieved_chunks = hybrid_search(
                 query=question,
                 conversation_history=conversation_memory.get_history(),
@@ -40,8 +35,7 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
 
                 return {
                     "answer": (
-                        "I couldn't find any relevant information "
-                        "in the knowledge base."
+                        "I couldn't find this information in the provided documents."
                     ),
                     "sources": [],
                 }
@@ -64,6 +58,15 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                 chunks=retrieved_chunks,
             )
 
+            confidence = calculate_confidence(retrieved_chunks)
+
+            print("\n===== CONFIDENCE =====")
+            print(f"Level   : {confidence['level']}")
+            print(f"Score   : {confidence['score']}%")
+            print(f"Top     : {confidence['top_score']}")
+            print(f"Average : {confidence['average_score']}")
+            print("======================\n")
+
             logfire.info("Context compression completed",chunks=len(retrieved_chunks),)
             logfire.info("Retrieval completed",retrieved_chunks=len(retrieved_chunks),)
             logfire.info("Building prompt")
@@ -85,6 +88,7 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
             return {
                 "answer": answer,
                 "sources": retrieved_chunks,
+                "confidence": confidence,
             }
 
         except Exception as e:
