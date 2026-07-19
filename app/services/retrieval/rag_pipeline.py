@@ -21,9 +21,16 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                 question=question,
             )
 
+            # retrieved_chunks = hybrid_search(
+            #     query=question,
+            #     limit=5,
+            #     source=source,
+            #     page=page,
+            # )
             retrieved_chunks = hybrid_search(
                 query=question,
-                limit=5,
+                conversation_history=conversation_memory.get_history(),
+                limit = 5,
                 source=source,
                 page=page,
             )

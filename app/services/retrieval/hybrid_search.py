@@ -3,11 +3,25 @@ from app.services.retrieval.bm25_service import search_bm25
 from app.services.retrieval.rrf import reciprocal_rank_fusion
 from app.services.retrieval.query_expansion import expand_query
 from app.services.retrieval.multi_query import generate_multi_queries
+from app.services.retrieval.query_rewriter import rewrite_query
 
 
-def hybrid_search(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
+def hybrid_search(
+    query,
+    conversation_history=None,
+    source=None,
+    page=None,
+    limit : int = 5
+):
 
-    expanded_queries = expand_query(query) 
+    # expanded_queries = expand_query(query) 
+    query = rewrite_query(
+        query,
+        conversation_history,
+    )
+
+    expanded_queries = expand_query(query)
+    
     multi_queries = generate_multi_queries(query) 
     queries = expanded_queries + multi_queries
     # queries = [query]
