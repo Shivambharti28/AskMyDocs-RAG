@@ -1,10 +1,15 @@
-from app.services.llm.router import get_llm
 import logfire
+
+from app.services.llm.router import get_llm
 
 llm = get_llm("cheap")
 
 
-def rewrite_query(query, conversation_history):
+def rewrite_query(
+    query,
+    conversation_history,
+    verbose=True,
+):
 
     if not conversation_history:
         return query
@@ -29,9 +34,11 @@ Rules:
     response = llm.invoke(prompt)
 
     rewritten_query = response.content.strip()
-    print("\n===== REWRITTEN QUERY =====")
-    print(rewritten_query)
-    print("===========================\n")
+
+    if verbose:
+        print("\n===== REWRITTEN QUERY =====")
+        print(rewritten_query)
+        print("===========================\n")
 
     logfire.info(f"Rewritten Query: {rewritten_query}")
 

@@ -33,9 +33,7 @@ def parse_text(file_path: str):
 
             if not text:
 
-                logfire.warning(
-                    f"No text extracted from {file_path}"
-                )
+                logfire.warning(f"No text extracted from {file_path}")
 
                 return []
 

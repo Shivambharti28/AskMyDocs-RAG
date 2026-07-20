@@ -4,9 +4,16 @@ MAX_CONTEXT_CHARS = 10000
 
 
 # def build_prompt(question: str, retrieved_chunks: list[dict]) -> str:
-def build_prompt(question: str,retrieved_chunks: list[dict],conversation_history: list[dict] | None = None,) -> str:
+def build_prompt(
+    question: str,
+    retrieved_chunks: list[dict],
+    conversation_history: list[dict] | None = None,
+) -> str:
 
-    with logfire.span("📝 Building Prompt",retrieved_chunks=len(retrieved_chunks),):
+    with logfire.span(
+        "📝 Building Prompt",
+        retrieved_chunks=len(retrieved_chunks),
+    ):
         # Remove duplicate chunks
         seen = set()
         unique_chunks = []
@@ -19,7 +26,6 @@ def build_prompt(question: str,retrieved_chunks: list[dict],conversation_history
 
             seen.add(text)
             unique_chunks.append(chunk)
-
 
         # System Instructions
 
@@ -67,7 +73,7 @@ Motivation is influenced by biological and psychological factors.
         if conversation_history:
             history += (
                 "==================================================\n"
-                    "CONVERSATION HISTORY\n"
+                "CONVERSATION HISTORY\n"
                 "==================================================\n\n"
             )
             for message in conversation_history:
@@ -114,10 +120,12 @@ Motivation is influenced by biological and psychological factors.
 
             """
 
-
             # Prevent prompt from exceeding context budget
             if len(context) + len(next_chunk) > MAX_CONTEXT_CHARS:
-                logfire.warning("Maximum context size reached.",max_context_chars=MAX_CONTEXT_CHARS,)
+                logfire.warning(
+                    "Maximum context size reached.",
+                    max_context_chars=MAX_CONTEXT_CHARS,
+                )
                 break
 
             context += next_chunk
@@ -145,7 +153,11 @@ ANSWER
 ==================================================
 """
 
-
-        logfire.info("Prompt built successfully.",unique_chunks=len(unique_chunks),context_length=len(context),prompt_length=len(prompt),)
+        logfire.info(
+            "Prompt built successfully.",
+            unique_chunks=len(unique_chunks),
+            context_length=len(context),
+            prompt_length=len(prompt),
+        )
 
         return prompt

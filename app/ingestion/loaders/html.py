@@ -1,5 +1,5 @@
-from bs4 import BeautifulSoup
 import logfire
+from bs4 import BeautifulSoup
 
 
 def parse_html(file_path: str):
@@ -105,6 +105,3 @@ def parse_html(file_path: str):
         except Exception as e:
             logfire.error(f"❌ HTML Parse Failed: {e}")
             raise
-
-
-        

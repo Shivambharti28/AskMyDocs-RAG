@@ -1,5 +1,5 @@
-from app.services.retrieval.qdrant_service import search
 from app.services.retrieval.prompt_builder import build_prompt
+from app.services.retrieval.qdrant_service import search
 
 question = input("Question: ")
 

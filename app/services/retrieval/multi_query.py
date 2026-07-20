@@ -1,16 +1,11 @@
-# from langchain_google_genai import ChatGoogleGenerativeAI
-# from app.config import settings
-# llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash",
-#     google_api_key=settings.GEMINI_API_KEY,
-#     temperature=0,
-# )
-from app.services.llm.router import get_llm
 import re
+
+from app.services.llm.router import get_llm
 
 llm = get_llm("cheap")
 
-def generate_multi_queries(question: str):
+
+def generate_multi_queries(question: str, verbose=True):
 
     prompt = f"""
 You are helping a Retrieval-Augmented Generation (RAG) system.

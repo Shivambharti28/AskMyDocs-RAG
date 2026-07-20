@@ -1,0 +1,20 @@
+{
+  "document_id": "6175a733-cc55-4337-8f80-4f0f87db98de",
+  "filename": "langchain_demo_2page.pdf",
+  "source_type": "general",
+  "total_chunks": 2,
+  "chunks": [
+    {
+      "chunk_id": 1,
+      "page": 1,
+      "section": "Page 1",
+      "text": "LangChain Demo Document\nLangChain is an open-source framework for building applications powered by large language\nmodels (LLMs). It provides tools for prompt management, chaining, retrieval, memory, agents, and\nintegrations with external data sources. Common use cases include chatbots, question-answering systems, Retrieval-Augmented\nGeneration (RAG), document analysis, and AI agents that interact with APIs and databases. A typical LangChain workflow involves loading documents, splitting them into chunks, generating\nembeddings, storing vectors in a vector database, retrieving relevant chunks, and using an LLM to\ngenerate answers."
+    },
+    {
+      "chunk_id": 2,
+      "page": 2,
+      "section": "Page 2",
+      "text": "LangChain RAG Example\nRetrieval-Augmented Generation (RAG) combines information retrieval with text generation. Instead of relying solely on an LLM's training data, a RAG system retrieves relevant documents at\nquery time. Example Pipeline: PDF Documents → Text Chunks → Embeddings → Vector Database →\nRetriever → LLM → Answer with Citations\nBenefits of RAG include reduced hallucinations, access to private knowledge bases, up-to-date\ninformation, and the ability to provide citations for generated answers."
+    }
+  ]
+}

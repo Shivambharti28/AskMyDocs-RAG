@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 from rank_bm25 import BM25Okapi
 
@@ -9,7 +9,7 @@ bm25 = None
 documents = []
 
 
-def build_bm25_index():
+def build_bm25_index(verbose=True):
     global bm25, documents
     documents = []
     corpus = []
@@ -24,20 +24,26 @@ def build_bm25_index():
                 chunk["source"] = data["filename"]
                 chunk["document_id"] = data["document_id"]
                 documents.append(chunk)
-                corpus.append(
-                    chunk["text"].split()
-                )
+                corpus.append(chunk["text"].split())
 
     bm25 = BM25Okapi(corpus)
 
-    print(f"BM25 built with {len(documents)} chunks.")
+    if verbose:
+        print(f"BM25 built with {len(documents)} chunks.")
 
-def search_bm25(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
+
+def search_bm25(
+    query: str,
+    limit: int = 5,
+    source: str | None = None,
+    page: int | None = None,
+    verbose: bool = True,
+):
 
     global bm25
 
     if bm25 is None:
-        build_bm25_index()
+        build_bm25_index(verbose=verbose)
 
     scores = bm25.get_scores(query.split())
 
@@ -59,8 +65,6 @@ def search_bm25(query: str,limit: int = 5,source: str | None = None,page: int | 
         if page is not None and chunk["page"] != page:
             continue
 
-        # chunk = chunk.copy()
-        # chunk["score"] = float(score)
         chunk = chunk.copy()
         chunk["bm25_score"] = float(score)
 

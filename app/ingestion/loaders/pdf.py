@@ -38,9 +38,12 @@ def parse_pdf(file_path: str) -> list[dict]:
 
             # Fallback: use pdfplumber for any pages pypdf returned blank
             if blank_pages:
-                logfire.info(f"pypdf returned blank on pages {blank_pages} — retrying with pdfplumber.")
+                logfire.info(
+                    f"pypdf returned blank on pages {blank_pages} — retrying with pdfplumber."
+                )
                 try:
                     import pdfplumber
+
                     with pdfplumber.open(file_path) as pdf:
                         for page_num in blank_pages:
                             page = pdf.pages[page_num - 1]
@@ -57,14 +60,16 @@ def parse_pdf(file_path: str) -> list[dict]:
                                 # pages_data.sort(key=lambda x: x["page"])
                 except Exception as plumber_err:
                     logfire.warning(f"pdfplumber fallback failed: {plumber_err}")
-            
+
             pages_data.sort(key=lambda x: x["page"])
             # full_text = "\n".join(text_parts)
             total_chars = sum(len(page["text"]) for page in pages_data)
 
             # if not full_text.strip():
             if not pages_data:
-                logfire.warning(f"No text extracted from {file_path}. File may be fully image-based.")
+                logfire.warning(
+                    f"No text extracted from {file_path}. File may be fully image-based."
+                )
             else:
                 # logfire.info(f"Extracted {len(full_text)} characters from {file_path}.")
                 logfire.info(

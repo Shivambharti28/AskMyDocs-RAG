@@ -1,20 +1,28 @@
-import logfire
 import traceback
-from app.services.retrieval.prompt_builder import build_prompt
-from app.services.retrieval.llm_service import generate_answer
-from app.services.retrieval.post_processing import (deduplicate_chunks,merge_adjacent_chunks,)
-from app.services.retrieval.hybrid_search import hybrid_search
-from app.services.retrieval.reranker import rerank_chunks
-from app.services.retrieval.context_compression import compress_chunks
+
+import logfire
+
 from app.services.conversation.memory import ConversationMemory
 from app.services.retrieval.confidence import calculate_confidence
+from app.services.retrieval.context_compression import compress_chunks
+from app.services.retrieval.hybrid_search import hybrid_search
+from app.services.retrieval.llm_service import generate_answer
+from app.services.retrieval.post_processing import (deduplicate_chunks,
+                                                    merge_adjacent_chunks)
+from app.services.retrieval.prompt_builder import build_prompt
+from app.services.retrieval.reranker import rerank_chunks
 
 conversation_memory = ConversationMemory()
 
 
-def ask(question: str,source: str | None = None,page: int | None = None,):
+def ask(
+    question: str,
+    source: str | None = None,
+    page: int | None = None,
+    verbose: bool = True,
+):
 
-    with logfire.span("🚀 Enterprise RAG Pipeline",question=question):
+    with logfire.span("🚀 Enterprise RAG Pipeline", question=question):
         try:
 
             logfire.info(
@@ -25,19 +33,22 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
             retrieved_chunks = hybrid_search(
                 query=question,
                 conversation_history=conversation_memory.get_history(),
-                limit = 5,
+                limit=5,
                 source=source,
                 page=page,
+                verbose=verbose,
             )
-            print("\n===== AFTER HYBRID SEARCH =====")
-            for c in retrieved_chunks:
-                print(
-                    f"Page={c['page']}",
-                    f"score={c.get('score')}",
-                    f"bm25={c.get('bm25_score')}",
-                    f"rrf={c.get('rrf_score')}",
-                    f"rerank={c.get('rerank_score')}",
-                )
+
+            if verbose:
+                print("\n===== AFTER HYBRID SEARCH =====")
+                for c in retrieved_chunks:
+                    print(
+                        f"Page={c['page']}",
+                        f"score={c.get('score')}",
+                        f"bm25={c.get('bm25_score')}",
+                        f"rrf={c.get('rrf_score')}",
+                        f"rerank={c.get('rerank_score')}",
+                    )
 
             if not retrieved_chunks:
                 logfire.warning("No relevant documents found.")
@@ -49,54 +60,60 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                     "sources": [],
                 }
 
-            retrieved_chunks = deduplicate_chunks(
-                retrieved_chunks
-            )
-            retrieved_chunks = merge_adjacent_chunks(
-                retrieved_chunks
-            )
+            retrieved_chunks = deduplicate_chunks(retrieved_chunks)
+            retrieved_chunks = merge_adjacent_chunks(retrieved_chunks)
             retrieved_chunks = rerank_chunks(
                 question=question,
                 chunks=retrieved_chunks,
                 top_k=5,
             )
-            print("\n===== AFTER RERANK =====")
-            for c in retrieved_chunks:
-                print(
-                    f"Page={c['page']}",
-                    f"score={c.get('score')}",
-                    f"bm25={c.get('bm25_score')}",
-                    f"rrf={c.get('rrf_score')}",
-                    f"rerank={c.get('rerank_score')}",
-                )
+            if verbose:
+                print("\n===== AFTER RERANK =====")
+                for c in retrieved_chunks:
+                    print(
+                        f"Page={c['page']}",
+                        f"score={c.get('score')}",
+                        f"bm25={c.get('bm25_score')}",
+                        f"rrf={c.get('rrf_score')}",
+                        f"rerank={c.get('rerank_score')}",
+                    )
             logfire.info("Compressing retrieved context")
 
             retrieved_chunks = compress_chunks(
                 question=question,
                 chunks=retrieved_chunks,
+                verbose=verbose,
             )
 
-            print("\n===== AFTER COMPRESSION =====")
-            for c in retrieved_chunks:
-                print(
-                    f"Page={c['page']}",
-                    f"score={c.get('score')}",
-                    f"bm25={c.get('bm25_score')}",
-                    f"rrf={c.get('rrf_score')}",
-                    f"rerank={c.get('rerank_score')}",
-                )
+            if verbose:
+                print("\n===== AFTER COMPRESSION =====")
+                for c in retrieved_chunks:
+                    print(
+                        f"Page={c['page']}",
+                        f"score={c.get('score')}",
+                        f"bm25={c.get('bm25_score')}",
+                        f"rrf={c.get('rrf_score')}",
+                        f"rerank={c.get('rerank_score')}",
+                    )
 
             confidence = calculate_confidence(retrieved_chunks)
 
-            print("\n===== CONFIDENCE =====")
-            print(f"Level   : {confidence['level']}")
-            print(f"Score   : {confidence['score']}%")
-            print(f"Top     : {confidence['top_score']}")
-            print(f"Average : {confidence['average_score']}")
-            print("======================\n")
+            if verbose:
+                print("\n===== CONFIDENCE =====")
+                print(f"Level   : {confidence['level']}")
+                print(f"Score   : {confidence['score']}%")
+                print(f"Top     : {confidence['top_score']}")
+                print(f"Average : {confidence['average_score']}")
+                print("======================\n")
 
-            logfire.info("Context compression completed",chunks=len(retrieved_chunks),)
-            logfire.info("Retrieval completed",retrieved_chunks=len(retrieved_chunks),)
+            logfire.info(
+                "Context compression completed",
+                chunks=len(retrieved_chunks),
+            )
+            logfire.info(
+                "Retrieval completed",
+                retrieved_chunks=len(retrieved_chunks),
+            )
             logfire.info("Building prompt")
             prompt = build_prompt(
                 question=question,
@@ -107,12 +124,12 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
             answer = generate_answer(prompt)
             conversation_memory.add_user_message(question)
             conversation_memory.add_assistant_message(answer)
-            print("\n===== Conversation History =====")
-            for message in conversation_memory.get_history():
-                print(f"{message['role'].upper()}: "
-                      f"{message['content']}"
-                )
-            logfire.info("Pipeline completed successfully",answer_length=len(answer))
+
+            if verbose:
+                print("\n===== Conversation History =====")
+                for message in conversation_memory.get_history():
+                    print(f"{message['role'].upper()}: " f"{message['content']}")
+            logfire.info("Pipeline completed successfully", answer_length=len(answer))
             return {
                 "answer": answer,
                 "sources": retrieved_chunks,
@@ -123,11 +140,13 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
 
             traceback.print_exc()
 
-            logfire.error("RAG Pipeline Failed",error=str(e),)
+            logfire.error(
+                "RAG Pipeline Failed",
+                error=str(e),
+            )
             return {
                 "answer": (
-                    "An unexpected error occurred while "
-                    "processing your request."
+                    "An unexpected error occurred while " "processing your request."
                 ),
                 "sources": [],
             }

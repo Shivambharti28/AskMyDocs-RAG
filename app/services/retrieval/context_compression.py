@@ -1,14 +1,14 @@
-# from langchain_google_genai import ChatGoogleGenerativeAI
-
-# llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash",
-#     temperature=0,
-# )
 from app.services.llm.router import get_llm
 
 llm = get_llm("best")
 
-def compress_chunks(question: str, chunks: list):
+
+# def compress_chunks(question: str, chunks: list):
+def compress_chunks(
+    question: str,
+    chunks: list,
+    verbose=True,
+):
 
     if not chunks:
         return []
@@ -49,21 +49,24 @@ Chunk {i}
 ====================
 """
 
-
     try:
         response = llm.invoke(prompt)
 
     except Exception as e:
-        print("\nContext Compression Failed")
-        print(e)
-        print("Using original retrieved chunks.\n")
+        if verbose:
+            print("\nContext Compression Failed")
+            print(e)
+            print("Using original retrieved chunks.\n")
 
         return chunks
 
-
-    print("\n========== COMPRESSED RESPONSE ==========\n")
-    print(response.content)
-    print("\n=========================================\n")
+    # print("\n========== COMPRESSED RESPONSE ==========\n")
+    # print(response.content)
+    # print("\n=========================================\n")
+    if verbose:
+        print("\n========== COMPRESSED RESPONSE ==========\n")
+        print(response.content)
+        print("\n=========================================\n")
 
     # ------------------------------
     # Split Response
@@ -75,15 +78,15 @@ Chunk {i}
         if text.strip()
     ]
 
-
     if len(compressed) != len(chunks):
 
-        print(
-            f"\nCompression returned {len(compressed)} chunks "
-            f"but expected {len(chunks)}."
-        )
+        if verbose:
+            print(
+                f"\nCompression returned {len(compressed)} chunks "
+                f"but expected {len(chunks)}."
+            )
 
-        print("Using original chunks instead.\n")
+            print("Using original chunks instead.\n")
 
         return chunks
 
@@ -100,8 +103,11 @@ Chunk {i}
 
         compressed_chunks.append(new_chunk)
 
-    print(
-        f"Successfully compressed {len(compressed_chunks)} chunks.\n"
-    )
+    if verbose:
+        print(f"Successfully compressed {len(compressed_chunks)} chunks.\n")
+
+    # print(
+    #     f"Successfully compressed {len(compressed_chunks)} chunks.\n"
+    # )
 
     return compressed_chunks

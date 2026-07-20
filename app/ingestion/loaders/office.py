@@ -1,5 +1,4 @@
 import logfire
-
 from unstructured.partition.auto import partition
 
 
@@ -12,7 +11,7 @@ def parse_office(file_path: str):
         {
             "page": None,
             "section": "...",
-            
+
             "text": "..."
         }
     ]
@@ -73,10 +72,7 @@ def parse_office(file_path: str):
                     }
                 )
 
-            total_chars = sum(
-                len(doc["text"])
-                for doc in documents
-            )
+            total_chars = sum(len(doc["text"]) for doc in documents)
 
             logfire.info(
                 "Office document parsed",

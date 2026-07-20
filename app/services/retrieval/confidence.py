@@ -12,11 +12,7 @@ def calculate_confidence(chunks: list[dict]) -> dict:
             "score": 0,
         }
 
-    scores = [
-    chunk["score"]
-    for chunk in chunks
-    if "score" in chunk
-]
+    scores = [chunk["score"] for chunk in chunks if "score" in chunk]
 
     if not scores:
         return {

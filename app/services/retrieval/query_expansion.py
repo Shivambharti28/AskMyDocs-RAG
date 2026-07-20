@@ -1,18 +1,15 @@
-# from langchain_google_genai import ChatGoogleGenerativeAI
-# from app.config import settings
-# llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash",
-#     google_api_key=settings.GEMINI_API_KEY,
-#     temperature=0,
-# )
-
 import re
+
 from app.services.llm.router import get_llm
 
 llm = get_llm("cheap")
 
 
-def expand_query(question: str):
+# def expand_query(question: str):
+def expand_query(
+    question: str,
+    verbose=True,
+):
 
     prompt = f"""
 Generate 4 different search queries for the question below.
@@ -26,9 +23,9 @@ Question:
     response = llm.invoke(prompt)
 
     queries = [
-    line.strip("- ").strip()
-    for line in response.content.split("\n")
-    if line.strip()
+        line.strip("- ").strip()
+        for line in response.content.split("\n")
+        if line.strip()
     ]
 
     # Remove duplicates while preserving order
@@ -41,7 +38,11 @@ Question:
             seen.add(normalized)
             unique_queries.append(q)
 
-    normalized_question = re.sub(r"[^\w\s]","",question.lower(),).strip()
+    normalized_question = re.sub(
+        r"[^\w\s]",
+        "",
+        question.lower(),
+    ).strip()
 
     if normalized_question not in seen:
         unique_queries.insert(0, question)

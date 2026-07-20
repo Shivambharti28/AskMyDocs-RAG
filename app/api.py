@@ -1,5 +1,4 @@
 import logfire
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -38,6 +37,7 @@ class Source(BaseModel):
 class QuestionResponse(BaseModel):
     answer: str
     sources: list[Source]
+
 
 # -----------------------------
 # Health Check
@@ -102,6 +102,4 @@ def ask_question(request: QuestionRequest):
 @app.get("/health")
 def health():
 
-    return {
-        "status": "healthy"
-    }
+    return {"status": "healthy"}

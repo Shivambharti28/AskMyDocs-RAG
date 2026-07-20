@@ -1,29 +1,32 @@
 import logfire
-
 from qdrant_client import QdrantClient
-from qdrant_client.models import (Filter,FieldCondition,MatchValue,)
+from qdrant_client.models import FieldCondition, Filter, MatchValue
+
 from app.config import settings
 from app.services.retrieval.embeddings import embed_query
-
 
 client = QdrantClient(
     url=settings.QDRANT_URL,
     api_key=settings.QDRANT_API_KEY,
-    timeout = 60,
+    timeout=60,
 )
 
 # Minimum similarity score required
 MIN_SCORE = 0.70
 
 
-# def search_by_vector(query_vector: list[float], limit: int = 5):
-def search_by_vector(query_vector: list[float],limit: int = 5,query_filter: Filter | None = None,):
+def search_by_vector(
+    query_vector: list[float],
+    limit: int = 5,
+    query_filter: Filter | None = None,
+    verbose: bool = True,
+):
     response = client.query_points(
-    collection_name=settings.QDRANT_COLLECTION,
-    query=query_vector,
-    query_filter=query_filter,
-    limit=limit,
-    with_payload=True,
+        collection_name=settings.QDRANT_COLLECTION,
+        query=query_vector,
+        query_filter=query_filter,
+        limit=limit,
+        with_payload=True,
     )
 
     results = []
@@ -34,36 +37,42 @@ def search_by_vector(query_vector: list[float],limit: int = 5,query_filter: Filt
         if point.score < MIN_SCORE:
             continue
 
-        results.append({
-            "score": point.score,
-            "text": point.payload.get("text"),
-            "source": point.payload.get("source"),
-            "page": point.payload.get("page"),
-            "section": point.payload.get("section"),
-            "chunk_id": point.payload.get("chunk_id"),
-            "document_id": point.payload.get("document_id"),
-        })
-
-    logfire.info(
-        f"Retrieved {len(results)} chunks above threshold ({MIN_SCORE})"
-    )
-    print("\n===== RAW QDRANT RESULTS =====")
-
-    for r in results:
-        print(
-            f"Page={r['page']} | "
-            f"Chunk={r['chunk_id']} | "
-            f"Doc={r['document_id']} | "
-            f"Score={r['score']:.4f}"
+        results.append(
+            {
+                "score": point.score,
+                "text": point.payload.get("text"),
+                "source": point.payload.get("source"),
+                "page": point.payload.get("page"),
+                "section": point.payload.get("section"),
+                "chunk_id": point.payload.get("chunk_id"),
+                "document_id": point.payload.get("document_id"),
+            }
         )
 
+    logfire.info(f"Retrieved {len(results)} chunks above threshold ({MIN_SCORE})")
+
+    if verbose:
+        print("\n===== RAW QDRANT RESULTS =====")
+
+        for r in results:
+            print(
+                f"Page={r['page']} | "
+                f"Chunk={r['chunk_id']} | "
+                f"Doc={r['document_id']} | "
+                f"Score={r['score']:.4f}"
+            )
     return results
 
 
-# def search(query: str, limit: int = 5):
-def search(query: str,limit: int = 5,source: str | None = None,page: int | None = None,):
+def search(
+    query: str,
+    limit: int = 5,
+    source: str | None = None,
+    page: int | None = None,
+    verbose: bool = True,
+):
     query_vector = embed_query(query)
-    
+
     conditions = []
 
     # Filter by source document
@@ -95,11 +104,15 @@ def search(query: str,limit: int = 5,source: str | None = None,page: int | None 
         query_vector=query_vector,
         limit=limit,
         query_filter=query_filter,
+        verbose=verbose,
     )
-    
 
 
-def search_with_filter(query: str,filter_condition,limit: int = 5,):
+def search_with_filter(
+    query: str,
+    filter_condition,
+    limit: int = 5,
+):
     query_vector = embed_query(query)
 
     response = client.query_points(
@@ -111,7 +124,3 @@ def search_with_filter(query: str,filter_condition,limit: int = 5,):
     )
 
     return response
-
-
-print(settings.QDRANT_URL)
-print(settings.QDRANT_COLLECTION)

@@ -1,7 +1,9 @@
 import time
+
 import logfire
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from sentence_transformers import SentenceTransformer
+
 from app.config import settings
 
 BATCH_SIZE = 50
@@ -11,19 +13,22 @@ _FALLBACK_DIM = 768
 _active_model = None
 _model_type: str | None = None
 
+
 def _probe_gemini():
     try:
         model = GoogleGenerativeAIEmbeddings(
-            model = "models/gemini-embedding-2-preview",
-            google_api_key = settings.GEMINI_API_KEY,
+            model="models/gemini-embedding-2-preview",
+            google_api_key=settings.GEMINI_API_KEY,
         )
         # model.embed_query("probe")
         logfire.info("Gemini embeddings ready (gemini-embedding-2-preview, 3072-dim).")
         return model
     except Exception as e:
-        logfire.warning(f"Gemini probe failed: {e}. Will use sentence-transformers fallback.")
+        logfire.warning(
+            f"Gemini probe failed: {e}. Will use sentence-transformers fallback."
+        )
         return None
-    
+
 
 def _load_fallback():
     logfire.info("Loading sentence-transformers fallback (all-mpnet-base-v2, 768-dim).")
@@ -36,14 +41,14 @@ def _init():
     if _active_model is not None:
         return
     gemini = _probe_gemini()
-    
+
     if gemini:
         _active_model = gemini
         _model_type = "gemini"
     else:
         _active_model = _load_fallback()
         _model_type = "fallback"
-    
+
 
 def get_embedding_dim() -> int:
     """
@@ -61,9 +66,11 @@ def _embed_batch(batch: list[str]) -> list[list[float]]:
                 return _active_model.embed_documents(batch)
             except Exception as e:
                 err = str(e).lower()
-                is_rate_limit = any(x in err for x in ("429", "rate", "quota", "resource_exhausted"))
+                is_rate_limit = any(
+                    x in err for x in ("429", "rate", "quota", "resource_exhausted")
+                )
                 if is_rate_limit and attempt < 3:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     logfire.warning(
                         f"Gemini rate limit hit - retrying in {wait}s"
                         f"(attempt {attempt + 1}/4)."
@@ -88,9 +95,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     _init()
     all_embeddings: list[list[float]] = []
     for i in range(0, len(texts), BATCH_SIZE):
-        batch = texts[i: i + BATCH_SIZE]
-        with logfire.span("Embed batch", model = _model_type, start = i, size = len(batch)):
+        batch = texts[i : i + BATCH_SIZE]
+        with logfire.span("Embed batch", model=_model_type, start=i, size=len(batch)):
             all_embeddings.extend(_embed_batch(batch))
     return all_embeddings
-
-

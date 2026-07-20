@@ -3,7 +3,7 @@
 # def deduplicate_chunks(chunks: list[dict],) -> list[dict]:
 
 #     with logfire.span("Post Processing - Deduplicate Chunks"):
-        
+
 #         seen = set()
 #         unique_chunks = []
 
@@ -123,17 +123,11 @@ def merge_adjacent_chunks(chunks: list[dict]) -> list[dict]:
 
         for chunk in chunks[1:]:
 
-            same_document = (
-                chunk["document_id"] == current["document_id"]
-            )
+            same_document = chunk["document_id"] == current["document_id"]
 
-            same_page = (
-                chunk["page"] == current["page"]
-            )
+            same_page = chunk["page"] == current["page"]
 
-            adjacent = (
-                chunk["chunk_id"] == current["end_chunk_id"] + 1
-            )
+            adjacent = chunk["chunk_id"] == current["end_chunk_id"] + 1
 
             if same_document and same_page and adjacent:
 

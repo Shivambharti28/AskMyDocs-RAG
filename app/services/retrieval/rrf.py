@@ -1,4 +1,8 @@
-def reciprocal_rank_fusion(dense_results,bm25_results,k=60,):
+def reciprocal_rank_fusion(
+    dense_results,
+    bm25_results,
+    k=60,
+):
 
     fused_scores = {}
 
@@ -29,7 +33,10 @@ def reciprocal_rank_fusion(dense_results,bm25_results,k=60,):
     # BM25 contribution
     for rank, chunk in enumerate(bm25_results, start=1):
 
-        key = (chunk["document_id"],chunk["chunk_id"],)
+        key = (
+            chunk["document_id"],
+            chunk["chunk_id"],
+        )
 
         if key not in fused_scores:
             fused_scores[key] = {

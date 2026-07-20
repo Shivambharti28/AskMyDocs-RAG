@@ -1,6 +1,4 @@
-from app.services.retrieval.bm25_service import (
-    search_bm25,
-)
+from app.services.retrieval.bm25_service import search_bm25
 
 query = input("Question: ")
 
