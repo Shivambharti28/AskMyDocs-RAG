@@ -15,6 +15,14 @@ def reciprocal_rank_fusion(dense_results,bm25_results,k=60,):
                 "chunk": chunk,
                 "score": 0,
             }
+        if key not in fused_scores:
+            fused_scores[key] = {
+                "chunk": chunk.copy(),
+                "score": 0,
+            }
+        elif "score" not in fused_scores[key]["chunk"] and "score" in chunk:
+            # Replace BM25-only chunk with dense chunk if available
+            fused_scores[key]["chunk"] = chunk.copy()
 
         fused_scores[key]["score"] += 1 / (k + rank)
 

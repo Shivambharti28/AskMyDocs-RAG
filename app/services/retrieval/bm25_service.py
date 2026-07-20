@@ -59,8 +59,10 @@ def search_bm25(query: str,limit: int = 5,source: str | None = None,page: int | 
         if page is not None and chunk["page"] != page:
             continue
 
+        # chunk = chunk.copy()
+        # chunk["score"] = float(score)
         chunk = chunk.copy()
-        chunk["score"] = float(score)
+        chunk["bm25_score"] = float(score)
 
         results.append(chunk)
 

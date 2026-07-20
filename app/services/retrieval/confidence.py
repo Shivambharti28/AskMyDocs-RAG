@@ -13,9 +13,18 @@ def calculate_confidence(chunks: list[dict]) -> dict:
         }
 
     scores = [
-        chunk.get("score", 0)
-        for chunk in chunks
-    ]
+    chunk["score"]
+    for chunk in chunks
+    if "score" in chunk
+]
+
+    if not scores:
+        return {
+            "level": "LOW",
+            "score": 0,
+            "top_score": 0,
+            "average_score": 0,
+        }
 
     top_score = max(scores)
     avg_score = sum(scores) / len(scores)

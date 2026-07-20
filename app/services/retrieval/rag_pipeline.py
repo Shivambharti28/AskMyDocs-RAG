@@ -29,6 +29,15 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                 source=source,
                 page=page,
             )
+            print("\n===== AFTER HYBRID SEARCH =====")
+            for c in retrieved_chunks:
+                print(
+                    f"Page={c['page']}",
+                    f"score={c.get('score')}",
+                    f"bm25={c.get('bm25_score')}",
+                    f"rrf={c.get('rrf_score')}",
+                    f"rerank={c.get('rerank_score')}",
+                )
 
             if not retrieved_chunks:
                 logfire.warning("No relevant documents found.")
@@ -51,12 +60,31 @@ def ask(question: str,source: str | None = None,page: int | None = None,):
                 chunks=retrieved_chunks,
                 top_k=5,
             )
+            print("\n===== AFTER RERANK =====")
+            for c in retrieved_chunks:
+                print(
+                    f"Page={c['page']}",
+                    f"score={c.get('score')}",
+                    f"bm25={c.get('bm25_score')}",
+                    f"rrf={c.get('rrf_score')}",
+                    f"rerank={c.get('rerank_score')}",
+                )
             logfire.info("Compressing retrieved context")
 
             retrieved_chunks = compress_chunks(
                 question=question,
                 chunks=retrieved_chunks,
             )
+
+            print("\n===== AFTER COMPRESSION =====")
+            for c in retrieved_chunks:
+                print(
+                    f"Page={c['page']}",
+                    f"score={c.get('score')}",
+                    f"bm25={c.get('bm25_score')}",
+                    f"rrf={c.get('rrf_score')}",
+                    f"rerank={c.get('rerank_score')}",
+                )
 
             confidence = calculate_confidence(retrieved_chunks)
 
