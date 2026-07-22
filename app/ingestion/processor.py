@@ -3,10 +3,12 @@ import os
 import sys
 import traceback
 import uuid
+import shutil
 
 import logfire
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
+from qdrant_client.http.models import PayloadSchemaType
 
 from app.config import settings
 from app.ingestion.chunking.splitter import chunk_text
@@ -15,6 +17,8 @@ from app.ingestion.loaders.office import parse_office
 from app.ingestion.loaders.pdf import parse_pdf
 from app.ingestion.loaders.text import parse_text
 from app.services.retrieval.embeddings import embed_texts, get_embedding_dim
+from app.services.retrieval.bm25_service import refresh_bm25_index
+from utils.document_registry import register_document
 
 logfire.configure(service_name="enterprise-ingestion-service")
 
@@ -133,6 +137,29 @@ def processed_file(file_path: str, filename: str, source_type: str):
                     document_id=document_id,
                     chunks=len(points),
                 )
+                # Determine file type
+                file_type = ext.upper()
+
+                # Get page count if available
+                pages = None
+                if ext == "pdf":
+                    pages = max(
+                        (
+                            chunk["page"]
+                            for chunk in chunks
+                            if chunk.get("page") is not None
+                        ),
+                        default=None,
+                    )
+
+                register_document(
+                    source=filename,
+                    file_type=file_type,
+                    pages=pages,
+                    chunks=len(chunks),
+                )
+
+                logfire.info(f"Registered document: {filename}")
 
         except Exception as e:
             logfire.error(f"Failed to process {filename}: {e}")
@@ -155,14 +182,31 @@ def process_directory(dir_path: str, source_type: str):
 def run_universal_ingestion(
     base_dir: str, explicit_source_type: str = None, wipe: bool = False
 ):
-    if wipe and qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
-        logfire.info("Deleting existing collection...")
-        qdrant_client.delete_collection(settings.QDRANT_COLLECTION)
-        logfire.info("Collection deleted.")
+    if wipe:
+
+        # Delete Qdrant collection
+        if qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
+            logfire.info("Deleting existing collection...")
+            qdrant_client.delete_collection(settings.QDRANT_COLLECTION)
+            logfire.info("Collection deleted.")
+
+        # Delete processed JSON files
+        if os.path.exists(PROCESSED_DATA_DIR):
+            logfire.info("Deleting processed data...")
+            shutil.rmtree(PROCESSED_DATA_DIR)
+
+        # Recreate empty processed_data folder
+        os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
+
+        logfire.info("Processed data cleared.")
+
     with logfire.span("Universal Ingestion Started", base_directory=base_dir):
         # Recreate collection - dimension resolved at runtime after embedding model probe
+
+
         if not qdrant_client.collection_exists(settings.QDRANT_COLLECTION):
             dim = get_embedding_dim()
+
             qdrant_client.create_collection(
                 collection_name=settings.QDRANT_COLLECTION,
                 vectors_config=models.VectorParams(
@@ -170,10 +214,25 @@ def run_universal_ingestion(
                     distance=models.Distance.COSINE,
                 ),
             )
+
+             # Create payload indexes for metadata filtering
+            qdrant_client.create_payload_index(
+                collection_name=settings.QDRANT_COLLECTION,
+                field_name="source",
+                field_schema=models.PayloadSchemaType.KEYWORD,
+            )
+
+            qdrant_client.create_payload_index(
+                collection_name=settings.QDRANT_COLLECTION,
+                field_name="page",
+                field_schema=models.PayloadSchemaType.INTEGER,
+            )
             logfire.info(
                 f"Created collection '{settings.QDRANT_COLLECTION}'"
                 f"({dim}-dim, Cosine)."
             )
+
+
 
         subdirs = [
             d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))
@@ -201,6 +260,10 @@ def run_universal_ingestion(
                     else "noisy" if "noisy" in subdir.lower() else subdir
                 )
                 process_directory(os.path.join(base_dir, subdir), source_type)
+        # Rebuild BM25 after all documents have been indexed
+        logfire.info("Refreshing BM25 index...")
+        refresh_bm25_index(verbose=True)
+        logfire.info("BM25 index refreshed.")
 
 
 if __name__ == "__main__":

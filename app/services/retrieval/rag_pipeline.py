@@ -50,14 +50,30 @@ def ask(
                         f"rerank={c.get('rerank_score')}",
                     )
 
+            # if not retrieved_chunks:
+            #     logfire.warning("No relevant documents found.")
+
+            #     return {
+            #         "answer": (
+            #             "I couldn't find this information in the provided documents."
+            #         ),
+            #         "sources": [],
+            #     }
+
             if not retrieved_chunks:
                 logfire.warning("No relevant documents found.")
 
                 return {
                     "answer": (
-                        "I couldn't find this information in the provided documents."
+                    "I couldn't find this information in the provided documents."
                     ),
                     "sources": [],
+                    "confidence": {
+                        "level": "LOW",
+                        "score": 0,
+                        "top_score": 0,
+                        "average_score": 0,
+                    },
                 }
 
             retrieved_chunks = deduplicate_chunks(retrieved_chunks)
@@ -67,6 +83,32 @@ def ask(
                 chunks=retrieved_chunks,
                 top_k=5,
             )
+            # Remove chunks that are not relevant enough
+            MIN_RERANK_SCORE = 0.0
+
+            retrieved_chunks = [
+                chunk
+                for chunk in retrieved_chunks
+                if chunk.get("rerank_score", float("-inf")) >= MIN_RERANK_SCORE
+            ]
+
+            if not retrieved_chunks:
+
+                logfire.warning("No relevant chunks after reranking.")
+
+                return {
+                    "answer": (
+                        "I couldn't find this information in the provided documents."
+                    ),
+                    "sources": [],
+                    "confidence": {
+                        "level": "LOW",
+                        "score": 0,
+                        "top_score": 0,
+                        "average_score": 0,
+                    },
+                }
+            
             if verbose:
                 print("\n===== AFTER RERANK =====")
                 for c in retrieved_chunks:
@@ -144,9 +186,23 @@ def ask(
                 "RAG Pipeline Failed",
                 error=str(e),
             )
+            # return {
+            #     "answer": (
+            #         "An unexpected error occurred while " "processing your request."
+            #     ),
+            #     "sources": [],
+            # }
+
             return {
                 "answer": (
-                    "An unexpected error occurred while " "processing your request."
+                    "An unexpected error occurred while "
+                    "processing your request."
                 ),
                 "sources": [],
+                "confidence": {
+                    "level": "LOW",
+                    "score": 0,
+                    "top_score": 0,
+                    "average_score": 0,
+                },
             }

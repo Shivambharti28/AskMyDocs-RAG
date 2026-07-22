@@ -25,11 +25,24 @@ def build_bm25_index(verbose=True):
                 chunk["document_id"] = data["document_id"]
                 documents.append(chunk)
                 corpus.append(chunk["text"].split())
-
+    if not corpus:
+        bm25 = None
+        if verbose:
+            print("BM25 index cleared (no documents).")
+            
+        return 
     bm25 = BM25Okapi(corpus)
 
     if verbose:
         print(f"BM25 built with {len(documents)} chunks.")
+
+def refresh_bm25_index(verbose=True):
+    global bm25, documents
+
+    bm25 = None
+    documents = []
+
+    build_bm25_index(verbose=verbose)
 
 
 def search_bm25(
@@ -43,7 +56,12 @@ def search_bm25(
     global bm25
 
     if bm25 is None:
+        if verbose:
+            print("BM25 index not found. Rebuilding...")
+
         build_bm25_index(verbose=verbose)
+        if bm25 is None:
+            return []
 
     scores = bm25.get_scores(query.split())
 
@@ -74,3 +92,4 @@ def search_bm25(
             break
 
     return results
+

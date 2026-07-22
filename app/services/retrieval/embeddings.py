@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 
 from app.config import settings
 
-BATCH_SIZE = 50
+BATCH_SIZE = 25
 _GEMINI_DIM = 3072
 _FALLBACK_DIM = 768
 
@@ -20,7 +20,7 @@ def _probe_gemini():
             model="models/gemini-embedding-2-preview",
             google_api_key=settings.GEMINI_API_KEY,
         )
-        # model.embed_query("probe")
+        model.embed_query("probe")
         logfire.info("Gemini embeddings ready (gemini-embedding-2-preview, 3072-dim).")
         return model
     except Exception as e:
@@ -70,7 +70,7 @@ def _embed_batch(batch: list[str]) -> list[list[float]]:
                     x in err for x in ("429", "rate", "quota", "resource_exhausted")
                 )
                 if is_rate_limit and attempt < 3:
-                    wait = 2**attempt
+                    wait = min(15 * (attempt + 1), 60)
                     logfire.warning(
                         f"Gemini rate limit hit - retrying in {wait}s"
                         f"(attempt {attempt + 1}/4)."
@@ -94,8 +94,21 @@ def embed_query(query: str) -> list[float]:
 def embed_texts(texts: list[str]) -> list[list[float]]:
     _init()
     all_embeddings: list[list[float]] = []
+    # for i in range(0, len(texts), BATCH_SIZE):
+    #     batch = texts[i : i + BATCH_SIZE]
+    #     with logfire.span("Embed batch", model=_model_type, start=i, size=len(batch)):
+    #         all_embeddings.extend(_embed_batch(batch))
     for i in range(0, len(texts), BATCH_SIZE):
         batch = texts[i : i + BATCH_SIZE]
-        with logfire.span("Embed batch", model=_model_type, start=i, size=len(batch)):
+
+        with logfire.span(
+            "Embed batch",
+            model=_model_type,
+            start=i,
+            size=len(batch),
+        ):
             all_embeddings.extend(_embed_batch(batch))
+
+        if _model_type == "gemini":
+            time.sleep(3)
     return all_embeddings
