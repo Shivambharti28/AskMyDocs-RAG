@@ -50,15 +50,7 @@ def ask(
                         f"rerank={c.get('rerank_score')}",
                     )
 
-            # if not retrieved_chunks:
-            #     logfire.warning("No relevant documents found.")
 
-            #     return {
-            #         "answer": (
-            #             "I couldn't find this information in the provided documents."
-            #         ),
-            #         "sources": [],
-            #     }
 
             if not retrieved_chunks:
                 logfire.warning("No relevant documents found.")
@@ -137,7 +129,23 @@ def ask(
                         f"rrf={c.get('rrf_score')}",
                         f"rerank={c.get('rerank_score')}",
                     )
+            retrieval_debug = []
+            for rank, chunk in enumerate(retrieved_chunks, start=1):
+                retrieval_debug.append({
+                    "rank": rank,
+                    "page": chunk.get("page"),
+                    "source": chunk.get("source"),
+                    "vector_score": chunk.get("score"),
+                    "bm25_score": chunk.get("bm25_score"),
+                    "rrf_score": chunk.get("rrf_score"),
+                    "rerank_score": chunk.get("rerank_score"),
 
+                })
+            print("\n===== RETRIEVAL DEBUG =====")
+
+            for row in retrieval_debug:
+                print(row)
+    
             confidence = calculate_confidence(retrieved_chunks)
 
             if verbose:
@@ -176,6 +184,7 @@ def ask(
                 "answer": answer,
                 "sources": retrieved_chunks,
                 "confidence": confidence,
+                "retrieval_debug": retrieval_debug,
             }
 
         except Exception as e:
@@ -186,12 +195,7 @@ def ask(
                 "RAG Pipeline Failed",
                 error=str(e),
             )
-            # return {
-            #     "answer": (
-            #         "An unexpected error occurred while " "processing your request."
-            #     ),
-            #     "sources": [],
-            # }
+
 
             return {
                 "answer": (

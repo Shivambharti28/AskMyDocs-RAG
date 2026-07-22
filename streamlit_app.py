@@ -1,6 +1,7 @@
 import re
 import json
 import shutil
+import pandas as pd
 from pathlib import Path
 
 import streamlit as st
@@ -234,6 +235,7 @@ if st.button("Ask"):
                 ),
                 verbose=True,
             )
+            
 
         st.session_state["result"] = result
 
@@ -328,13 +330,8 @@ if "result" in st.session_state:
                 }
             )
         
-            # with st.container(border=True):
-            
-            #     st.markdown(f"## 📘 {filename}")
-        
-            #     st.caption(
-            #         f"📑 Evidence from {unique_pages} page(s)"
-            #     )
+
+    
             st.markdown(f"## 📘 {filename}")
             st.caption(f"📑 Evidence from {unique_pages} page(s)")
         
@@ -346,17 +343,7 @@ if "result" in st.session_state:
                 ),
             )
 
-            # st.caption(
-            #     f"📑 Evidence from {unique_pages} page(s)"
-            # )
 
-            filtered_sources = sorted(
-                filtered_sources,
-                key=lambda x: (
-                    x.get("page") not in cited_pages,
-                    x.get("page") or 0,
-                ),
-            )
 
             seen_pages = set()
 
@@ -381,25 +368,15 @@ if "result" in st.session_state:
                 word_count = len(full_text.split())
 
 
-                # if page in cited_pages:
-                #     st.markdown(
-                #         f"⭐ **Page {page} (Used in Answer)** • {word_count} words"
-                #     )
-                # else:
-                #     st.markdown(
-                #         f"📄 **Page {page}** • {word_count} words"
-                #     )
 
                 if page in cited_pages:
                     st.success("🟢 Referenced in Answer")
-                    # st.markdown(
-                    #     f"**📄 Page {page} • {word_count} words**"
-                    # )
+
                 else:
                     st.info("📚 Retrieved as Supporting Context")
-                    st.markdown(
-                        f"**📄 Page {page} • {word_count} words**"
-                    )
+                st.markdown(
+                    f"**📄 Page {page} • {word_count} words**"
+                )
 
 
                 # Better preview
@@ -428,5 +405,62 @@ if "result" in st.session_state:
             "No supporting passages were found."
         )
 
+if "result" in st.session_state:
+
+    with st.expander("🔍 Retrieval Debug"):
+
+        debug_rows = []
+
+        for rank, chunk in enumerate(
+            st.session_state["result"]["sources"],
+            start=1,
+        ):
+
+            debug_rows.append({
+
+                "Rank": rank,
+
+                "Page": chunk.get("page"),
+
+                "Vector Score": round(
+                    chunk.get("score", 0),
+                    3,
+                ),
+
+                # "BM25 Score": (
+                #     "-"
+                #     if chunk.get("bm25_score") is None
+                #     else round(chunk["bm25_score"], 3)
+                # ),
+
+                "BM25 Score": (
+                    "-"
+                    if chunk.get("bm25_score") is None
+                    else f"{chunk['bm25_score']:.3f}"
+                ),
+
+                "RRF Score": round(
+                    chunk.get("rrf_score", 0),
+                    3,
+                ),
+
+                "Rerank Score": round(
+                    chunk.get("rerank_score", 0),
+                    3,
+                ),
+
+            })
+
+        # st.dataframe(
+        #     pd.DataFrame(debug_rows),
+        #     use_container_width=True,
+        #     hide_index=True,
+        # )
+
+        st.dataframe(
+            pd.DataFrame(debug_rows),
+            width="stretch",
+            hide_index=True,
+        )
 
 # streamlit run streamlit_app.py
