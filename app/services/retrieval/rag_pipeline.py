@@ -1,5 +1,5 @@
 import traceback
-
+import time
 import logfire
 
 from app.services.conversation.memory import ConversationMemory
@@ -24,11 +24,14 @@ def ask(
 
     with logfire.span("🚀 Enterprise RAG Pipeline", question=question):
         try:
+            pipeline_start = time.perf_counter()
+            timings = {}
 
             logfire.info(
                 "Searching knowledge base",
                 question=question,
             )
+            start = time.perf_counter()
 
             retrieved_chunks = hybrid_search(
                 query=question,
@@ -38,6 +41,7 @@ def ask(
                 page=page,
                 verbose=verbose,
             )
+            timings["Hybrid Search"] = time.perf_counter() - start
 
             if verbose:
                 print("\n===== AFTER HYBRID SEARCH =====")
@@ -53,6 +57,7 @@ def ask(
 
 
             if not retrieved_chunks:
+                timings["Total"] = time.perf_counter() - pipeline_start
                 logfire.warning("No relevant documents found.")
 
                 return {
@@ -66,15 +71,26 @@ def ask(
                         "top_score": 0,
                         "average_score": 0,
                     },
+                    "timings": timings,
                 }
+
+            start = time.perf_counter()
 
             retrieved_chunks = deduplicate_chunks(retrieved_chunks)
             retrieved_chunks = merge_adjacent_chunks(retrieved_chunks)
+
+            timings["Post Processing"] = time.perf_counter() - start
+
+            start = time.perf_counter()
+
             retrieved_chunks = rerank_chunks(
                 question=question,
                 chunks=retrieved_chunks,
                 top_k=5,
             )
+
+            timings["Reranking"] = time.perf_counter() - start
+
             # Remove chunks that are not relevant enough
             MIN_RERANK_SCORE = 0.0
 
@@ -85,6 +101,8 @@ def ask(
             ]
 
             if not retrieved_chunks:
+                timings["Total"] = time.perf_counter() - pipeline_start
+
 
                 logfire.warning("No relevant chunks after reranking.")
 
@@ -99,6 +117,7 @@ def ask(
                         "top_score": 0,
                         "average_score": 0,
                     },
+                    "timings": timings,
                 }
             
             if verbose:
@@ -113,11 +132,15 @@ def ask(
                     )
             logfire.info("Compressing retrieved context")
 
+            start = time.perf_counter()
+
             retrieved_chunks = compress_chunks(
                 question=question,
                 chunks=retrieved_chunks,
                 verbose=verbose,
             )
+
+            timings["Compression"] = time.perf_counter() - start
 
             if verbose:
                 print("\n===== AFTER COMPRESSION =====")
@@ -165,26 +188,40 @@ def ask(
                 retrieved_chunks=len(retrieved_chunks),
             )
             logfire.info("Building prompt")
+
+            start = time.perf_counter()
+
             prompt = build_prompt(
                 question=question,
                 retrieved_chunks=retrieved_chunks,
                 conversation_history=conversation_memory.get_history(),
             )
+
+            timings["Prompt Building"] = time.perf_counter() - start
+
             logfire.info("Generating answer")
+            start = time.perf_counter()
             answer = generate_answer(prompt)
+            timings["LLM Generation"] = time.perf_counter() - start
+            start = time.perf_counter()
             conversation_memory.add_user_message(question)
             conversation_memory.add_assistant_message(answer)
+            timings["Memory Update"] = time.perf_counter() - start
 
             if verbose:
                 print("\n===== Conversation History =====")
                 for message in conversation_memory.get_history():
                     print(f"{message['role'].upper()}: " f"{message['content']}")
             logfire.info("Pipeline completed successfully", answer_length=len(answer))
+
+            timings["Total"] = time.perf_counter() - pipeline_start
+
             return {
                 "answer": answer,
                 "sources": retrieved_chunks,
                 "confidence": confidence,
                 "retrieval_debug": retrieval_debug,
+                "timings": timings,
             }
 
         except Exception as e:

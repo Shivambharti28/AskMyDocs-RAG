@@ -278,6 +278,36 @@ if "result" in st.session_state:
         st.metric("Level", confidence.get("level", "Unknown"))
 
 # -----------------------------
+# Pipeline Performance
+# -----------------------------
+st.divider()
+
+st.subheader("⏱️ Pipeline Performance")
+
+if "result" in st.session_state:
+
+    timings = st.session_state["result"].get("timings", {})
+
+    if timings:
+
+        timing_df = pd.DataFrame({
+            "Stage": list(timings.keys()),
+            "Time (sec)": [round(value, 3) for value in timings.values()],
+        })
+
+        if "Total" in timing_df["Stage"].values:
+            total_row = timing_df[timing_df["Stage"] == "Total"]
+            timing_df = timing_df[timing_df["Stage"] != "Total"]
+            timing_df = pd.concat([timing_df, total_row], ignore_index=True)
+
+        with st.expander("View Pipeline Timings"):
+            st.dataframe(
+                timing_df,
+                width="stretch",
+                hide_index=True,
+            )
+
+# -----------------------------
 # Sources
 # -----------------------------
 
