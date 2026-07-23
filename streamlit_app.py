@@ -10,6 +10,7 @@ import streamlit as st
 from app.ingestion.processor import run_universal_ingestion
 from app.services.retrieval.rag_pipeline import ask
 from utils.document_registry import load_documents
+from app.services.retrieval.rag_pipeline import conversation_memory
 from utils.document_manager import delete_document
 
 st.set_page_config(
@@ -203,7 +204,7 @@ with st.sidebar:
 # -----------------------------
 # Main Page
 # -----------------------------
-st.title("🤖 Enterprise Document Assistant")
+st.title("🤖 AskMyDocs-RAG")
 
 st.write(
     "Upload your documents and ask questions about them."
@@ -233,7 +234,7 @@ if st.button("Ask"):
                     if selected_page in (None, "All Pages")
                     else selected_page
                 ),
-                verbose=True,
+                verbose=False,
             )
             
 
@@ -249,6 +250,30 @@ st.subheader("Answer")
 if "result" in st.session_state:
     st.write(st.session_state["result"]["answer"])
 
+
+st.divider()
+
+st.subheader("💬 Conversation")
+with st.expander("Conversation History", expanded=False):
+
+    history = conversation_memory.get_history()
+
+    if not history:
+        st.info("No conversation yet.")
+
+    else:
+
+        for message in history:
+
+            if message["role"] == "user":
+                st.markdown(
+                    f"**🧑 You:** {message['content']}"
+                )
+
+            else:
+                st.markdown(
+                    f"**🤖 Assistant:** {message['content']}"
+                )
 # -----------------------------
 # Confidence
 # -----------------------------
@@ -439,58 +464,61 @@ if "result" in st.session_state:
 
     with st.expander("🔍 Retrieval Debug"):
 
-        debug_rows = []
-
-        for rank, chunk in enumerate(
-            st.session_state["result"]["sources"],
-            start=1,
-        ):
-
-            debug_rows.append({
-
-                "Rank": rank,
-
-                "Page": chunk.get("page"),
-
-                "Vector Score": round(
-                    chunk.get("score", 0),
-                    3,
-                ),
-
-                # "BM25 Score": (
-                #     "-"
-                #     if chunk.get("bm25_score") is None
-                #     else round(chunk["bm25_score"], 3)
-                # ),
-
-                "BM25 Score": (
-                    "-"
-                    if chunk.get("bm25_score") is None
-                    else f"{chunk['bm25_score']:.3f}"
-                ),
-
-                "RRF Score": round(
-                    chunk.get("rrf_score", 0),
-                    3,
-                ),
-
-                "Rerank Score": round(
-                    chunk.get("rerank_score", 0),
-                    3,
-                ),
-
-            })
-
-        # st.dataframe(
-        #     pd.DataFrame(debug_rows),
-        #     use_container_width=True,
-        #     hide_index=True,
-        # )
+        debug_rows = st.session_state["result"].get(
+            "retrieval_debug",
+            [],
+        )
 
         st.dataframe(
             pd.DataFrame(debug_rows),
             width="stretch",
             hide_index=True,
         )
+
+    # with st.expander("🔍 Retrieval Debug"):
+
+    #     debug_rows = []
+
+    #     for rank, chunk in enumerate(
+    #         st.session_state["result"]["sources"],
+    #         start=1,
+    #     ):
+
+    #         debug_rows.append({
+
+    #             "Rank": rank,
+
+    #             "Page": chunk.get("page"),
+
+    #             "Vector Score": round(
+    #                 chunk.get("score", 0),
+    #                 3,
+    #             ),
+
+
+    #             "BM25 Score": (
+    #                 "-"
+    #                 if chunk.get("bm25_score") is None
+    #                 else f"{chunk['bm25_score']:.3f}"
+    #             ),
+
+    #             "RRF Score": round(
+    #                 chunk.get("rrf_score", 0),
+    #                 3,
+    #             ),
+
+    #             "Rerank Score": round(
+    #                 chunk.get("rerank_score", 0),
+    #                 3,
+    #             ),
+
+    #         })
+
+
+    #     st.dataframe(
+    #         pd.DataFrame(debug_rows),       
+    #         width="stretch",
+    #         hide_index=True,
+    #     )
 
 # streamlit run streamlit_app.py

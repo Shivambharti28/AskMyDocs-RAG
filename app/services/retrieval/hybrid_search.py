@@ -2,7 +2,7 @@ from app.services.retrieval.bm25_service import search_bm25
 from app.services.retrieval.multi_query import generate_multi_queries
 from app.services.retrieval.qdrant_service import search
 from app.services.retrieval.query_expansion import expand_query
-from app.services.retrieval.query_rewriter import rewrite_query
+# from app.services.retrieval.query_rewriter import rewrite_query
 from app.services.retrieval.rrf import reciprocal_rank_fusion
 
 
@@ -15,12 +15,12 @@ def hybrid_search(
     verbose=True,
 ):
 
-    # expanded_queries = expand_query(query)
-    query = rewrite_query(
-        query,
-        conversation_history,
-        verbose=verbose,
-    )
+    # # expanded_queries = expand_query(query)
+    # query = rewrite_query(
+    #     query,
+    #     conversation_history,
+    #     verbose=verbose,
+    # )
 
     expanded_queries = expand_query(
         query,

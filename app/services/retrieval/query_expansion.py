@@ -47,4 +47,12 @@ Question:
     if normalized_question not in seen:
         unique_queries.insert(0, question)
 
+
+    print("\n===== QUERY EXPANSION =====")
+
+    for i, query in enumerate(unique_queries, start=1):
+        print(f"{i}. {query}")
+
+    print("===========================\n")
+
     return unique_queries

@@ -1,125 +1,172 @@
-# 📚 AskMyDocs – Production RAG System
+# 📚 AskMyBook – Enterprise RAG System
 
-A production-ready Retrieval-Augmented Generation (RAG) system that allows users to ask natural language questions over their own documents and receive accurate, citation-backed answers powered by Large Language Models.
+AskMyBook is an **Enterprise Retrieval-Augmented Generation (RAG)** application that allows users to upload PDF documents and ask natural language questions about their content.
 
-The system performs semantic retrieval using vector embeddings, retrieves the most relevant document chunks from Qdrant, builds a grounded prompt, and generates responses using Google's Gemini models.
+The system combines **Hybrid Retrieval**, **Query Rewriting**, **Query Expansion**, **Multi-Query Retrieval**, **Reciprocal Rank Fusion (RRF)**, **Cross-Encoder Reranking**, and **Context Compression** to provide accurate, citation-backed answers.
 
----
-
-# ✨ Features
-
-- 📄 Multi-document ingestion
-- 🧩 Hybrid document chunking
-- 🔍 Semantic vector search
-- 📚 Citation-backed answers
-- 🤖 Gemini/Groq LLM integration
-- ⚡ FastAPI backend
-- 🎨 Streamlit frontend
-- ☁️ Qdrant Cloud vector database
-- 📊 Logfire observability
-- 🔄 Modular production architecture
-- 🚀 REST API support
+Built as part of a GenAI engineering project to demonstrate production-style Retrieval-Augmented Generation systems.
 
 ---
 
-# 🏗️ Architecture
+# 🚀 Features
+
+### 📄 Intelligent Document Processing
+
+- PDF text extraction (PyPDF + PDFPlumber fallback)
+- Structural chunking
+- Semantic chunking
+- Metadata extraction
+- Automatic ingestion pipeline
+
+---
+
+### 🔍 Enterprise Retrieval Pipeline
+
+- Query Rewriting
+- Query Expansion
+- Multi-Query Generation
+- Hybrid Search
+  - BM25
+  - Dense Vector Search
+- Reciprocal Rank Fusion (RRF)
+- Duplicate Removal
+- Adjacent Chunk Merging
+- Cross-Encoder Reranking
+- Context Compression
+- Confidence Scoring
+
+---
+
+### 🤖 LLM Pipeline
+
+- Gemini Embeddings
+- Gemini LLM
+- Groq LLM Support
+- Automatic LLM Routing
+- Conversation Memory
+- Prompt Engineering
+
+---
+
+### 📑 Answer Generation
+
+- Context-aware responses
+- Source citations
+- Page references
+- Guardrails ("I don't know" when evidence is insufficient)
+
+---
+
+### 💻 User Interface
+
+- Streamlit Web App
+- PDF Upload
+- Interactive Chat Interface
+- Conversation History
+- Retrieval Debug Panel
+- Source Viewer
+
+---
+
+# 🏗️ System Architecture
 
 ```
-                User Question
-                      │
-                      ▼
-              FastAPI / Streamlit
-                      │
-                      ▼
-              Query Embedding
-          (Gemini Embeddings)
-                      │
-                      ▼
-            Semantic Search
-             (Qdrant Cloud)
-                      │
-                      ▼
-          Retrieved Document Chunks
-                      │
-                      ▼
-             Prompt Builder
-                      │
-                      ▼
-           Gemini 2.5 Flash Lite
-                      │
-                      ▼
-            Final Grounded Answer
-                      │
-                      ▼
-         Sources + Page Citations
+                    Upload PDF
+                         │
+                         ▼
+                 PDF Parsing
+                         │
+                         ▼
+          Structural + Semantic Chunking
+                         │
+                         ▼
+                  Gemini Embeddings
+                         │
+                         ▼
+                  Qdrant Cloud
+                         │
+                         ▼
+                  User Question
+                         │
+                         ▼
+                 Query Rewriting
+                         │
+                         ▼
+                 Query Expansion
+                         │
+                         ▼
+              Multi Query Generation
+                         │
+        ┌────────────────┴────────────────┐
+        ▼                                 ▼
+   BM25 Retrieval                 Dense Retrieval
+        └──────────────┬───────────────┘
+                       ▼
+          Reciprocal Rank Fusion (RRF)
+                       ▼
+            Duplicate Removal
+                       ▼
+          Adjacent Chunk Merging
+                       ▼
+         Cross Encoder Reranking
+                       ▼
+            Context Compression
+                       ▼
+             Prompt Construction
+                       ▼
+            Gemini / Groq Router
+                       ▼
+               Final Response
+                       ▼
+         Answer + Source Citations
 ```
+
+---
+
+# 🛠️ Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Language | Python 3.13 |
+| UI | Streamlit |
+| LLM | Google Gemini, Groq |
+| Embeddings | Gemini Embedding 2 |
+| Vector Database | Qdrant Cloud |
+| Lexical Search | BM25 |
+| Retrieval | Hybrid Retrieval |
+| Fusion | Reciprocal Rank Fusion |
+| Reranker | Cross Encoder |
+| PDF Parsing | PyPDF, PDFPlumber |
+| Chunking | Structural + Semantic |
+| Environment | python-dotenv |
 
 ---
 
 # 📂 Project Structure
 
 ```
-AskMyDocs-RAG/
-
+AskMyBook/
 │
 ├── app/
 │   ├── ingestion/
-│   │   ├── loaders/
-│   │   ├── chunking/
-│   │   └── processor.py
-│   │
-│   ├── retrieval/
-│   │   ├── embeddings.py
-│   │   ├── qdrant_service.py
-│   │   ├── post_processing.py
-│   │   ├── prompt_builder.py
-│   │   ├── llm_service.py
-│   │   └── rag_pipeline.py
-│   │
-│   ├── ui/
-│   │   └── streamlit_app.py
-│   │
-│   ├── api.py
-│   ├── config.py
-│   └── tests...
+│   ├── services/
+│   │   ├── retrieval/
+│   │   ├── llm/
+│   │   ├── embeddings/
+│   │   └── vector_store/
+│   ├── prompts/
+│   └── utils/
 │
-├── DATA/
-├── .env
+├── uploads/
+├── processed_data/
+├── docs/
+│   └── adr/
+│
+├── streamlit_app.py
 ├── requirements.txt
-└── README.md
+├── README.md
+└── design_doc.md
 ```
-
----
-
-# 🚀 Tech Stack
-
-### LLM
-
-- Google Gemini 2.5 Flash Lite
-
-### Embeddings
-
-- Gemini Embedding 2
-
-### Vector Database
-
-- Qdrant Cloud
-
-### Backend
-
-- FastAPI
-
-### Frontend
-
-- Streamlit
-
-### Logging
-
-- Logfire
-
-### Language
-
-- Python 3.13+
 
 ---
 
@@ -128,12 +175,12 @@ AskMyDocs-RAG/
 Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/AskMyDocs-RAG.git
+git clone https://github.com/YOUR_USERNAME/AskMyBook.git
 
-cd AskMyDocs-RAG
+cd AskMyBook
 ```
 
-Create virtual environment
+Create a virtual environment
 
 ```bash
 python -m venv .venv
@@ -141,13 +188,13 @@ python -m venv .venv
 
 Activate
 
-### macOS/Linux
+Mac/Linux
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Windows
+Windows
 
 ```bash
 .venv\Scripts\activate
@@ -163,213 +210,117 @@ pip install -r requirements.txt
 
 # 🔑 Environment Variables
 
-Create a `.env`
+Create a `.env` file.
 
 ```env
-GEMINI_API_KEY=YOUR_API_KEY
+GOOGLE_API_KEY=YOUR_KEY
 
-QDRANT_CLUSTER_ENDPOINT=https://your-cluster.cloud.qdrant.io
+GROQ_API_KEY=YOUR_KEY
 
-QDRANT_API_KEY=YOUR_QDRANT_KEY
+QDRANT_URL=YOUR_URL
 
-GROQ_API_KEY=YOUR_GROQ_KEY
+QDRANT_API_KEY=YOUR_KEY
 ```
 
 ---
 
-# 📥 Document Ingestion
-
-Place your files inside
-
-```
-DATA/
-```
-
-Run
+# ▶️ Running the Application
 
 ```bash
-python -m app.ingestion.processor DATA
-```
-
-The pipeline will
-
-- Parse documents
-- Chunk documents
-- Generate embeddings
-- Upload vectors to Qdrant
-
----
-
-# ▶️ Run FastAPI
-
-```bash
-uvicorn app.api:app --reload
-```
-
-Open
-
-```
-http://127.0.0.1:8000/docs
+streamlit run streamlit_app.py
 ```
 
 ---
 
-# 🎨 Run Streamlit
+# 📖 How It Works
 
-```bash
-streamlit run app/ui/streamlit_app.py
-```
-
----
-
-# 🔍 Example Query
-
-```
-What is motivation?
-```
-
-Example response
-
-```
-Motivation is an internal psychological process that directs
-behavior toward goals and energizes action.
-
-Source:
-Motivation_Psychology_Notes.pdf
-Page 3
-```
+1. Upload a PDF.
+2. The document is parsed and chunked.
+3. Chunks are embedded using Gemini Embeddings.
+4. Embeddings are stored in Qdrant Cloud.
+5. User asks a question.
+6. The system rewrites and expands the query.
+7. BM25 and Dense Retrieval execute in parallel.
+8. Results are fused using Reciprocal Rank Fusion.
+9. Chunks are reranked and compressed.
+10. The selected context is passed to the LLM.
+11. The system returns an answer with citations.
 
 ---
 
-# 🌐 API
+# 🛡️ Guardrails
 
-### POST
+The system includes several guardrails:
 
-```
-/ask
-```
-
-Request
-
-```json
-{
-    "question": "What is motivation?"
-}
-```
-
-Response
-
-```json
-{
-  "answer": "...",
-  "sources": [
-    {
-      "source": "Motivation_Psychology_Notes.pdf",
-      "page": 3,
-      "score": 0.76
-    }
-  ]
-}
-```
+- Refuses to hallucinate when evidence is weak.
+- Returns "I don't know" when sufficient context is unavailable.
+- Answers only from uploaded documents.
+- Uses retrieved evidence for every response.
 
 ---
 
-# 🔄 RAG Pipeline
+# 📊 Current Capabilities
 
-```
-User Question
-        │
-        ▼
-Generate Query Embedding
-        │
-        ▼
-Semantic Search (Qdrant)
-        │
-        ▼
-Post Processing
-    ├── Similarity Threshold
-    ├── Deduplication
-        │
-        ▼
-Prompt Builder
-        │
-        ▼
-Gemini LLM
-        │
-        ▼
-Answer + Sources
-```
-
----
-
-# 📊 Current Retrieval Features
-
-✅ Semantic Retrieval
-
-✅ Similarity Threshold Filtering
-
-✅ Duplicate Chunk Removal
-
-✅ Source Attribution
-
-✅ Page-Level Citations
-
----
-
-# 📈 Future Improvements
-
-- Hybrid Search (BM25 + Dense Retrieval)
-- Cross Encoder Re-ranking
-- Metadata Filtering
+- PDF Question Answering
+- Hybrid Retrieval
+- Query Rewriting
 - Query Expansion
-- Parent-Child Retrieval
-- Multi-Query Retrieval
+- Multi Query Retrieval
+- Reciprocal Rank Fusion
+- Cross Encoder Reranking
 - Context Compression
-- OCR Support
-- Image Retrieval
-- Streaming Responses
-- Authentication
-- Docker Deployment
-- CI/CD Pipeline
+- Conversation Memory
+- Confidence Scoring
+- Source Citations
 
 ---
 
-# 🧪 Testing
+# 🔮 Future Improvements
 
-Retrieval
+- Multi-document comparison
+- Metadata filtering
+- OCR for scanned PDFs
+- Image understanding
+- Table extraction
+- RAGAS evaluation
+- Docker deployment
+- Authentication
+- Streaming responses
+- REST API
 
-```bash
-python -m app.test_retrieval
-```
+---
 
-Prompt Builder
+# 📈 Evaluation
 
-```bash
-python -m app.test_prompt
-```
+The system will be evaluated using:
 
-LLM
+- Correctness
+- Citation Precision
+- Completeness
 
-```bash
-python -m app.test_llm
-```
+using a benchmark of 20+ manually curated questions.
 
-Complete Pipeline
+---
 
-```bash
-python -m app.test_rag
-```
+# 📚 Architecture Decision Records (ADRs)
+
+The project includes ADRs documenting important architectural decisions:
+
+- ADR-001: Choosing Qdrant Cloud
+- ADR-002: Hybrid Retrieval Pipeline
+- ADR-003: LLM Routing Strategy
 
 ---
 
 # 📸 Screenshots
 
-You can add screenshots here.
+> Add screenshots of:
 
-- Streamlit Interface
-- Swagger UI
-- Logfire Dashboard
-- Qdrant Cloud
+- Home Page
+- PDF Upload
+- Chat Interface
+- Retrieval Debug
+- Source Citations
 
 ---
 
@@ -377,15 +328,9 @@ You can add screenshots here.
 
 **Shivam Bharti**
 
-AI/ML Engineer | Python | RAG | LLM Applications
+Enterprise Retrieval-Augmented Generation (RAG) Project
 
----
+Built using Python, Streamlit, Gemini, Qdrant Cloud, and modern Retrieval Engineering techniques.
 
-# 📄 License
-
-This project is released under the MIT License.
-
-
-
-
-
+** Video Link **
+https://drive.google.com/file/d/1r8bLVqjQWBoknZ3elLPrJUic75JtbIPf/view?usp=sharing

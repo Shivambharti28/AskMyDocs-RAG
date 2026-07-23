@@ -48,4 +48,14 @@ Question:
             seen.add(normalized)
             unique_queries.append(q)
 
+    
+    print("\n===== MULTI QUERY =====")
+
+    for i, query in enumerate(unique_queries, start=1):
+        print(f"{i}. {query}")
+
+    print("=======================\n")
+
+    
+
     return unique_queries

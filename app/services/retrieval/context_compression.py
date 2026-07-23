@@ -3,7 +3,6 @@ from app.services.llm.router import get_llm
 llm = get_llm("best")
 
 
-# def compress_chunks(question: str, chunks: list):
 def compress_chunks(
     question: str,
     chunks: list,
@@ -60,9 +59,7 @@ Chunk {i}
 
         return chunks
 
-    # print("\n========== COMPRESSED RESPONSE ==========\n")
-    # print(response.content)
-    # print("\n=========================================\n")
+
     if verbose:
         print("\n========== COMPRESSED RESPONSE ==========\n")
         print(response.content)
@@ -106,8 +103,5 @@ Chunk {i}
     if verbose:
         print(f"Successfully compressed {len(compressed_chunks)} chunks.\n")
 
-    # print(
-    #     f"Successfully compressed {len(compressed_chunks)} chunks.\n"
-    # )
 
     return compressed_chunks

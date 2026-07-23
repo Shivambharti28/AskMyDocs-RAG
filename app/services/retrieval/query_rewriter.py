@@ -10,25 +10,56 @@ def rewrite_query(
     conversation_history,
     verbose=True,
 ):
-
+    # No previous conversation → no rewriting needed
     if not conversation_history:
         return query
 
+    # Convert conversation history into readable dialogue
+    history_text = "\n".join(
+        f"{message['role'].title()}: {message['content']}"
+        for message in conversation_history
+    )
+
     prompt = f"""
-You are a query rewriting assistant.
+You are an expert search query rewriting assistant.
+
+Your job is to rewrite the user's latest question into a standalone search query.
 
 Conversation History:
-{conversation_history}
+{history_text}
 
 Current User Question:
 {query}
 
-Rewrite the user's question into a standalone search query.
+Instructions:
+- Resolve pronouns such as "it", "they", "this", "that", "he", "she", etc.
+- Use the conversation history to identify what those pronouns refer to.
+- Preserve the user's original intent.
+- Do not answer the question.
+- Do not add extra information.
+- Return only the rewritten standalone query.
 
-Rules:
-- Resolve pronouns.
-- Preserve meaning.
-- Return only the rewritten query.
+Examples:
+
+Conversation:
+User: What is Retrieval-Augmented Generation?
+Assistant: Retrieval-Augmented Generation (RAG) combines retrieval with LLM generation.
+
+Question:
+How does it work?
+
+Output:
+How does Retrieval-Augmented Generation work?
+
+Conversation:
+User: Explain BM25.
+Assistant: BM25 is a keyword-based retrieval algorithm.
+
+Question:
+Explain it in two lines.
+
+Output:
+Explain BM25 in two lines.
 """
 
     response = llm.invoke(prompt)

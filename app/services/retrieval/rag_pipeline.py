@@ -7,13 +7,47 @@ from app.services.retrieval.confidence import calculate_confidence
 from app.services.retrieval.context_compression import compress_chunks
 from app.services.retrieval.hybrid_search import hybrid_search
 from app.services.retrieval.llm_service import generate_answer
-from app.services.retrieval.post_processing import (deduplicate_chunks,
-                                                    merge_adjacent_chunks)
+from app.services.retrieval.post_processing import (deduplicate_chunks,merge_adjacent_chunks)
 from app.services.retrieval.prompt_builder import build_prompt
 from app.services.retrieval.reranker import rerank_chunks
+from app.services.retrieval.query_rewriter import rewrite_query
 
+MIN_RERANK_SCORE = 0.0
 conversation_memory = ConversationMemory()
 
+def empty_response(timings: dict):
+    return {
+        "answer": (
+            "I couldn't find this information in the provided documents."
+        ),
+        "sources": [],
+        "confidence": {
+            "level": "LOW",
+            "score": 0,
+            "top_score": 0,
+            "average_score": 0,
+        },
+        "timings": timings,
+    }
+
+def build_retrieval_debug(chunks):
+
+    retrieval_debug = []
+
+    for rank, chunk in enumerate(chunks, start=1):
+        retrieval_debug.append(
+            {
+                "rank": rank,
+                "page": chunk.get("page"),
+                "source": chunk.get("source"),
+                "vector_score": chunk.get("score"),
+                "bm25_score": chunk.get("bm25_score"),
+                "rrf_score": chunk.get("rrf_score"),
+                "rerank_score": chunk.get("rerank_score"),
+            }
+        )
+
+    return retrieval_debug
 
 def ask(
     question: str,
@@ -33,8 +67,14 @@ def ask(
             )
             start = time.perf_counter()
 
+            rewritten_question = rewrite_query(
+                question,
+                conversation_memory.get_history(),
+                verbose=verbose,
+            )
+
             retrieved_chunks = hybrid_search(
-                query=question,
+                query=rewritten_question,
                 conversation_history=conversation_memory.get_history(),
                 limit=5,
                 source=source,
@@ -60,19 +100,7 @@ def ask(
                 timings["Total"] = time.perf_counter() - pipeline_start
                 logfire.warning("No relevant documents found.")
 
-                return {
-                    "answer": (
-                    "I couldn't find this information in the provided documents."
-                    ),
-                    "sources": [],
-                    "confidence": {
-                        "level": "LOW",
-                        "score": 0,
-                        "top_score": 0,
-                        "average_score": 0,
-                    },
-                    "timings": timings,
-                }
+                return empty_response(timings)
 
             start = time.perf_counter()
 
@@ -84,7 +112,7 @@ def ask(
             start = time.perf_counter()
 
             retrieved_chunks = rerank_chunks(
-                question=question,
+                question=rewritten_question,
                 chunks=retrieved_chunks,
                 top_k=5,
             )
@@ -92,7 +120,7 @@ def ask(
             timings["Reranking"] = time.perf_counter() - start
 
             # Remove chunks that are not relevant enough
-            MIN_RERANK_SCORE = 0.0
+            
 
             retrieved_chunks = [
                 chunk
@@ -106,19 +134,7 @@ def ask(
 
                 logfire.warning("No relevant chunks after reranking.")
 
-                return {
-                    "answer": (
-                        "I couldn't find this information in the provided documents."
-                    ),
-                    "sources": [],
-                    "confidence": {
-                        "level": "LOW",
-                        "score": 0,
-                        "top_score": 0,
-                        "average_score": 0,
-                    },
-                    "timings": timings,
-                }
+                return empty_response(timings)
             
             if verbose:
                 print("\n===== AFTER RERANK =====")
@@ -135,7 +151,7 @@ def ask(
             start = time.perf_counter()
 
             retrieved_chunks = compress_chunks(
-                question=question,
+                question=rewritten_question,
                 chunks=retrieved_chunks,
                 verbose=verbose,
             )
@@ -152,22 +168,12 @@ def ask(
                         f"rrf={c.get('rrf_score')}",
                         f"rerank={c.get('rerank_score')}",
                     )
-            retrieval_debug = []
-            for rank, chunk in enumerate(retrieved_chunks, start=1):
-                retrieval_debug.append({
-                    "rank": rank,
-                    "page": chunk.get("page"),
-                    "source": chunk.get("source"),
-                    "vector_score": chunk.get("score"),
-                    "bm25_score": chunk.get("bm25_score"),
-                    "rrf_score": chunk.get("rrf_score"),
-                    "rerank_score": chunk.get("rerank_score"),
+            retrieval_debug = build_retrieval_debug(retrieved_chunks)
 
-                })
-            print("\n===== RETRIEVAL DEBUG =====")
-
-            for row in retrieval_debug:
-                print(row)
+            if verbose:
+                print("\n===== RETRIEVAL DEBUG =====")
+                for row in retrieval_debug:
+                    print(row)
     
             confidence = calculate_confidence(retrieved_chunks)
 
@@ -192,7 +198,7 @@ def ask(
             start = time.perf_counter()
 
             prompt = build_prompt(
-                question=question,
+                question=rewritten_question,
                 retrieved_chunks=retrieved_chunks,
                 conversation_history=conversation_memory.get_history(),
             )
