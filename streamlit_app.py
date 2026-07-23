@@ -13,7 +13,7 @@ from utils.document_registry import load_documents
 from utils.document_manager import delete_document
 
 st.set_page_config(
-    page_title="Enterprise Document Assistant",
+    page_title="AskMyDocs-RAG",
     page_icon="📚",
     layout="wide",
 )
