@@ -82,7 +82,7 @@ def highlight_query(text, query):
 # Sidebar
 # -----------------------------
 with st.sidebar:
-    st.title("📚 Enterprise RAG")
+    st.title("📚 AskMyDOCs-RAG")
 
     # -------------------------
     # Upload Documents
